@@ -3,13 +3,15 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -24,6 +26,7 @@ class User extends Authenticatable
         'role',
         'contact',
         'is_active',
+        'is_protected',
         'permissions',
     ];
 
@@ -48,31 +51,41 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_protected' => 'boolean',
             'permissions' => 'array',
         ];
     }
 
     /**
-     * Default module permissions per role.
-     * Used when a user has no custom permissions stored.
-     * Modules: dashboard, banners, users. Actions: view, add, edit, delete.
+     * Complete permission matrix for full-access CMS administrators.
+     *
+     * @return array<string, array<string, bool>>
      */
-    public const ROLE_PERMISSIONS = [
-        'Super Admin' => [],
-        'Content Manager' => [
-            'dashboard' => ['view' => true],
-            'banners' => ['view' => true, 'add' => true, 'edit' => true],
-            'users' => ['view' => true],
-        ],
-        'Editor' => [
-            'dashboard' => ['view' => true],
-            'banners' => ['view' => true, 'edit' => true],
-        ],
-        'Viewer / Analyst' => [
-            'dashboard' => ['view' => true],
-            'banners' => ['view' => true],
-        ],
-    ];
+    public static function fullAccessPermissions(): array
+    {
+        $actions = [
+            'view' => true,
+            'add' => true,
+            'edit' => true,
+            'delete' => true,
+        ];
+
+        return [
+            'dashboard' => $actions,
+            'banners' => $actions,
+            'users' => $actions,
+            'contacts' => $actions,
+            'newsletters' => $actions,
+        ];
+    }
+
+    /**
+     * Database role definition assigned to this user.
+     */
+    public function roleRecord(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role', 'name');
+    }
 
     public function isSuperAdmin(): bool
     {
@@ -80,7 +93,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Permissions in effect: custom stored ones, or the role defaults.
+     * Permissions in effect: custom stored ones, or the database role defaults.
      */
     public function effectivePermissions(): array
     {
@@ -88,7 +101,11 @@ class User extends Authenticatable
             return $this->permissions;
         }
 
-        return self::ROLE_PERMISSIONS[$this->role] ?? [];
+        $role = $this->relationLoaded('roleRecord')
+            ? $this->getRelation('roleRecord')
+            : $this->roleRecord()->first();
+
+        return $role?->permissions ?? [];
     }
 
     /**
@@ -96,12 +113,22 @@ class User extends Authenticatable
      */
     public function canAccess(string $module, string $action): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
+        $permissions = $this->effectivePermissions();
+
+        return ! empty($permissions[$module][$action]);
+    }
+
+    /**
+     * First admin route the user is allowed to view.
+     */
+    public function landingRouteName(): ?string
+    {
+        foreach (['dashboard' => 'dashboard', 'contacts' => 'contacts.index', 'newsletters' => 'newsletters.index', 'banners' => 'banners.index', 'users' => 'users.index'] as $module => $route) {
+            if ($this->canAccess($module, 'view')) {
+                return $route;
+            }
         }
 
-        $perms = $this->effectivePermissions();
-
-        return ! empty($perms[$module][$action]);
+        return null;
     }
 }

@@ -216,6 +216,12 @@ ROUTES/  — URL MAP
                               $pages/$pageCount, system info to the view.)
    GET  /login            -> redirect 302 -> /admin/login   (legacy URL)
    GET  /dashboard        -> redirect 302 -> /admin/dashboard (legacy URL)
+   GET  /admin/contacts   -> ContactController@index (name: contacts.index, permission contacts:view)
+   PATCH /admin/contacts/{contact} -> ContactController@update (name: contacts.update, permission contacts:edit)
+   DELETE /admin/contacts/{contact} -> ContactController@destroy (name: contacts.destroy, permission contacts:delete)
+   GET  /admin/newsletters -> NewsletterController@index (name: newsletters.index, permission newsletters:view)
+   PATCH /admin/newsletters/{newsletter} -> NewsletterController@update (name: newsletters.update, permission newsletters:edit)
+   DELETE /admin/newsletters/{newsletter} -> NewsletterController@destroy (name: newsletters.destroy, permission newsletters:delete)
 
  routes/console.php
    PURPOSE: Artisan console commands (cron-like tasks).
@@ -297,8 +303,8 @@ RESOURCES/VIEWS/  — BLADE TEMPLATES (HTML)
      layouts/sidebar.blade.php   Admin shell: html head + left sidebar
                                  (Dashboard link on top, Logout pinned at
                                  the bottom) + header + @yield('content')
-     partials/sidebar.blade.php  The sidebar nav itself (included by
-                                 layouts/sidebar)
+     partials/sidebar.blade.php  The sidebar nav itself (Dashboard, Banners, User Management, Contact Us, Newsletter).
+                                 (included by layouts/sidebar).
       dashboard.blade.php         Extends backend.layouts.sidebar. Data comes
                                   from DashboardController@index (NOT static):
                                   welcome hero (date, user name/email, View
@@ -391,4 +397,23 @@ QUICK RULES (cheat sheet)
                                       so Blade files never change.
  8. Never hard-code page content   -> Data always comes from the
    inside Blade?                      controller (mock now, model later).
+  9. New reusable rule, folder,       -> Update docs/PROJECT_STANDARDS.md
+     role, or workflow?                 and the relevant STRUCTURE.txt
+                                       section in the same change.
+
 ================================================================================
+TEMPLATE STANDARD
+================================================================================
+  docs/PROJECT_STANDARDS.md is mandatory for ongoing template work.
+  It defines developer responsibilities, backend/frontend rules,
+  permissions, uploads, testing, naming, and definition of done.
+================================================================================
+
+ADMIN INTERFACE CONVENTIONS
+---------------------------
+ backend/layouts/sidebar.blade.php owns the shared workspace header, typography,
+ focus styles, mobile navigation behavior, and responsive banner table styling.
+ backend/partials/sidebar.blade.php highlights the active module on nested pages.
+ backend/banners/index.blade.php provides labeled filters and mobile stacked rows.
+ User and banner actions respect the account's existing module permissions.
+ See docs/PROJECT_STANDARDS.md, section 11.

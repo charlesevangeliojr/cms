@@ -10,7 +10,17 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            $landingRouteName = Auth::user()->landingRouteName();
+
+            if (! $landingRouteName) {
+                Auth::logout();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'This account does not have access to any admin module.',
+                ]);
+            }
+
+            return redirect()->route($landingRouteName);
         }
 
         return view('backend.auth.login');
@@ -39,7 +49,21 @@ class AuthController extends Controller
                 ])->onlyInput('email');
             }
 
-            return redirect()->intended(route('dashboard'));
+            $user = Auth::user();
+            $landingRouteName = $user->landingRouteName();
+
+            if (! $landingRouteName) {
+                Auth::logout();
+
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors([
+                    'email' => 'This account does not have access to any admin module.',
+                ])->onlyInput('email');
+            }
+
+            return redirect()->intended(route($landingRouteName));
         }
 
         return back()->withErrors([

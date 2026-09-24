@@ -8,13 +8,13 @@
     @method('PUT')
     
     {{-- Page Header --}}
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h2 class="text-2xl font-bold tracking-tight text-gray-900">Edit User</h2>
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
+            <h2 class="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">Edit User</h2>
             <p class="text-sm text-gray-500">Manage account information and role access</p>
         </div>
-        <div class="flex gap-3">
-            <a href="{{ route('users.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a>
+        <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
+            <a href="{{ route('users.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a>
             <button type="submit" class="rounded-lg bg-indigo-900 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-800 transition">Save User</button>
         </div>
     </div>
@@ -37,11 +37,11 @@
         {{-- Left Column: Account Information --}}
         <div class="lg:col-span-5 space-y-6">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+                <div class="px-4 py-4 border-b border-gray-200 flex items-center gap-2 sm:px-6">
                     <svg class="w-5 h-5 text-rose-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
                     <h3 class="text-xs font-bold text-gray-700 tracking-widest uppercase">Account Information</h3>
                 </div>
-                <div class="p-6 space-y-5">
+                <div class="p-4 space-y-5 sm:p-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Full Name *</label>
                         <input type="text" name="name" value="{{ old('name', $user->name) }}" placeholder="e.g. Maria Santos" class="w-full rounded-lg border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
@@ -49,10 +49,6 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Email Address *</label>
                         <input type="email" name="email" value="{{ old('email', $user->email) }}" placeholder="user@nweb.solutions" class="w-full rounded-lg border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-900 mb-1.5">Contact Number</label>
-                        <input type="text" name="contact" value="{{ old('contact', $user->contact) }}" placeholder="09XXXXXXXXX" class="w-full rounded-lg border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">New Password <span class="font-normal text-gray-400">(leave blank to keep current)</span></label>
@@ -96,26 +92,37 @@
                     <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
                     <h3 class="text-xs font-bold text-gray-700 tracking-widest uppercase">Role & Access</h3>
                 </div>
-                <div class="p-6 flex flex-col flex-1 gap-6">
+                <div class="p-4 flex flex-col flex-1 gap-6 sm:p-6">
                     
                     {{-- Assign Role Segments --}}
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-2">Assign Role *</label>
-                        <div class="flex rounded-lg border border-gray-200 p-1 bg-gray-50/50">
-                            <button type="button" class="flex-1 rounded-md bg-indigo-900 py-2.5 text-xs font-bold text-white shadow-sm transition">Select Existing Role</button>
-                            <button type="button" class="flex-1 rounded-md py-2.5 text-xs font-bold text-gray-600 hover:bg-gray-100 transition">Create New Role</button>
+                        <div class="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-800">Available roles</p>
+                                <p class="text-xs text-gray-500">Only active roles are listed here.</p>
+                            </div>
+                            @if (auth()->user()?->isSuperAdmin())
+                                <a href="{{ route('roles.create') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-indigo-900 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-800 sm:w-auto">
+                                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Create New Role
+                                </a>
+                            @endif
                         </div>
                     </div>
 
                     {{-- Role Select --}}
                     <div>
-                        <label class="block text-sm font-semibold text-gray-900 mb-1.5">Select Role *</label>
-                        <select name="role" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none">
+                        <label class="block text-sm font-semibold text-gray-900 mb-1.5" for="role">Select Role *</label>
+                        <select id="role" name="role" data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="1" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none">
                             <option value="">Select Role</option>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ old('role', $user->role) == $role ? 'selected' : '' }}>{{ $role }}</option>
                             @endforeach
                         </select>
+                        <p class="mt-1.5 text-xs text-gray-400">Choosing a different role fills the permissions below. You can still adjust individual permissions.</p>
                     </div>
 
                     {{-- Full System Access --}}
@@ -139,8 +146,8 @@
                             <button type="button" onclick="toggleAllPermissions(false)" class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline">Clear All</button>
                         </div>
                         
-                        <div class="flex-1 overflow-y-auto border border-gray-200 rounded-lg">
-                            <table class="w-full text-left text-sm text-gray-700">
+                        <div class="flex-1 overflow-x-auto overflow-y-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-[560px] w-full text-left text-sm text-gray-700">
                                 <thead class="bg-indigo-950 text-white text-[10px] font-bold tracking-widest uppercase sticky top-0 z-10">
                                     <tr>
                                         <th class="px-4 py-3">Module</th>
@@ -158,7 +165,7 @@
                                         @foreach(['view', 'add', 'edit', 'delete'] as $action)
                                         <td class="px-2 py-3 text-center">
                                             <label class="inline-flex cursor-pointer group-hover:scale-110 transition-transform">
-                                                <input type="checkbox" name="permissions[{{ $module['key'] }}][{{ $action }}]" value="1" class="perm-check sr-only peer" @checked(!empty($effectivePermissions[$module['key']][$action] ?? null))>
+                                                <input type="checkbox" name="permissions[{{ $module['key'] }}][{{ $action }}]" value="1" class="perm-check sr-only peer" @checked(! empty($checkedPermissions[$module['key']][$action] ?? null))>
                                                 <div class="w-4 h-4 rounded border-2 border-gray-300 bg-white peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:[&_svg]:opacity-100 flex items-center justify-center transition-colors">
                                                     <svg class="w-3 h-3 text-white opacity-0 transition-opacity" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                                                 </div>
@@ -180,14 +187,4 @@
     </div>
 </form>
 
-<script>
-    function toggleAllPermissions(checked) {
-        document.querySelectorAll('.perm-check').forEach(cb => {
-            cb.checked = checked;
-        });
-        if(!checked) {
-            document.getElementById('fullAccessToggle').checked = false;
-        }
-    }
-</script>
 @endsection

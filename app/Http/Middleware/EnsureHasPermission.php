@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureHasPermission
@@ -18,7 +19,16 @@ class EnsureHasPermission
         $user = $request->user();
 
         if (! $user || ! $user->canAccess($module, $action)) {
-            abort(403);
+            $moduleLabel = match ($module) {
+                'dashboard' => 'the dashboard',
+                'banners' => 'banners',
+                'users' => 'users',
+                'contacts' => 'contact messages',
+                'newsletters' => 'newsletter subscribers',
+                default => Str::headline($module),
+            };
+
+            abort(403, "You are not allowed to {$action} {$moduleLabel}.");
         }
 
         return $next($request);

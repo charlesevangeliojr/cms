@@ -2,8 +2,11 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,11 +24,37 @@ Route::post('/admin/login', [AuthController::class, 'login'])->name('login.attem
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Admin (sidebar layout, login required + module permissions)
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])
         ->middleware('permission:dashboard,view')->name('dashboard');
+    Route::get('/admin/roles/create', [RoleController::class, 'create'])
+        ->name('roles.create');
+    Route::post('/admin/roles', [RoleController::class, 'store'])
+        ->name('roles.store');
     Route::get('/admin/banners', [BannerController::class, 'index'])
         ->middleware('permission:banners,view')->name('banners.index');
+    Route::get('/admin/banners/create', [BannerController::class, 'create'])
+        ->middleware('permission:banners,add')->name('banners.create');
+    Route::post('/admin/banners', [BannerController::class, 'store'])
+        ->middleware('permission:banners,add')->name('banners.store');
+    Route::get('/admin/banners/{banner}/edit', [BannerController::class, 'edit'])
+        ->middleware('permission:banners,edit')->name('banners.edit');
+    Route::put('/admin/banners/{banner}', [BannerController::class, 'update'])
+        ->middleware('permission:banners,edit')->name('banners.update');
+    Route::delete('/admin/banners/{banner}', [BannerController::class, 'destroy'])
+        ->middleware('permission:banners,delete')->name('banners.destroy');
+    Route::get('/admin/contacts', [ContactController::class, 'index'])
+        ->middleware('permission:contacts,view')->name('contacts.index');
+    Route::patch('/admin/contacts/{contact}', [ContactController::class, 'update'])
+        ->middleware('permission:contacts,edit')->name('contacts.update');
+    Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy'])
+        ->middleware('permission:contacts,delete')->name('contacts.destroy');
+    Route::get('/admin/newsletters', [NewsletterController::class, 'index'])
+        ->middleware('permission:newsletters,view')->name('newsletters.index');
+    Route::patch('/admin/newsletters/{newsletter}', [NewsletterController::class, 'update'])
+        ->middleware('permission:newsletters,edit')->name('newsletters.update');
+    Route::delete('/admin/newsletters/{newsletter}', [NewsletterController::class, 'destroy'])
+        ->middleware('permission:newsletters,delete')->name('newsletters.destroy');
     Route::get('/admin/users', [UserController::class, 'index'])
         ->middleware('permission:users,view')->name('users.index');
     Route::get('/admin/users/create', [UserController::class, 'create'])

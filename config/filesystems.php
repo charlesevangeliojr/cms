@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        'banners' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/banners'),
+            'url' => env('APP_URL').'/uploads/banners',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => true,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
