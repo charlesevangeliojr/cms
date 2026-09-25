@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'role',
         'contact',
+        'avatar_path',
         'is_active',
         'is_protected',
         'permissions',
@@ -77,6 +78,18 @@ class User extends Authenticatable
             'contacts' => $actions,
             'newsletters' => $actions,
         ];
+    }
+
+    /**
+     * Get the publicly accessible avatar URL.
+     */
+    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::get(
+            fn (mixed $value, array $attributes): ?string => ! empty($attributes['avatar_path'])
+                ? \Illuminate\Support\Facades\Storage::disk('avatars')->url($attributes['avatar_path'])
+                : null,
+        );
     }
 
     /**

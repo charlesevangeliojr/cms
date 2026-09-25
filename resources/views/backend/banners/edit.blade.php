@@ -12,12 +12,12 @@
             <h2 class="text-2xl font-bold tracking-tight text-gray-900">Edit Banner</h2>
             <p class="text-sm text-gray-500">Update banner content, placement, and visibility.</p>
         </div>
-        <div class="flex gap-3">
-            <a href="{{ route('banners.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a>
-            <button type="submit" class="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Save Changes</button>
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="{{ route('banners.index') }}" class="inline-flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition whitespace-nowrap">Cancel</a>
+            <button type="submit" class="inline-flex items-center justify-center gap-2 h-10 rounded-xl bg-indigo-600 px-6 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition whitespace-nowrap">Save Changes</button>
         </div>
     </div>
 
-    @include('backend.banners._form', ['positions' => $positions])
+    @include('backend.banners._form')
 </form>
 @endsection

@@ -43,6 +43,25 @@ class NewsletterController extends Controller
     }
 
     /**
+     * Store a public newsletter subscription from the landing page.
+     */
+    public function storePublic(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255', 'unique:newsletter_subscribers,email'],
+            'name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        NewsletterSubscriber::create([
+            'email' => $validated['email'],
+            'name' => $validated['name'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', 'Subscribed successfully. Check Newsletter in admin.');
+    }
+
+    /**
      * Activate or deactivate a newsletter subscriber.
      */
     public function update(Request $request, NewsletterSubscriber $newsletter)

@@ -49,7 +49,11 @@ class UserController extends Controller
             'role' => ['required', 'string', $this->activeRoleRule()],
             'contact' => ['nullable', 'string', 'max:20'],
             'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['array'],
+            'permissions.*.*' => ['boolean'],
         ]);
+
+        $this->ensureCanManageAccess($request);
 
         User::create([
             'name' => $validated['name'],
@@ -69,6 +73,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $this->ensureCanManageAccess(request(), $user, false);
         $roleDefinitions = $this->activeRoleDefinitions();
         $roles = $roleDefinitions->pluck('name');
         $modules = $this->getModules();
@@ -93,13 +98,17 @@ class UserController extends Controller
             'role' => ['required', 'string', $this->activeRoleRule()],
             'contact' => ['nullable', 'string', 'max:20'],
             'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['array'],
+            'permissions.*.*' => ['boolean'],
         ]);
+
+        $this->ensureCanManageAccess($request, $user);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
         $user->contact = $validated['contact'] ?? null;
-        $user->is_active = $request->boolean('is_active');
+        $user->is_active = $user->is_protected ? true : $request->boolean('is_active');
         $user->permissions = $this->normalizePermissions($request);
 
         if (! empty($validated['password'])) {
@@ -116,6 +125,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->ensureCanManageAccess(request(), $user, false);
         if ($user->is_protected) {
             return redirect()->route('users.index')->with('error', 'This account is protected and cannot be deleted.');
         }
@@ -133,9 +143,32 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 
-    /**
-     * Active role definitions used by the role selector and role defaults.
-     */
+    /** Prevent delegated account managers from taking over more privileged accounts. */
+    private function ensureCanManageAccess(Request $request, ?User $target = null, bool $checkSubmitted = true): void
+    {
+        $actor = $request->user();
+        if ($actor->isSuperAdmin()) {
+            return;
+        }
+
+        abort_if($target && ($target->isSuperAdmin() || $target->is_protected), 403, 'Only a Super Admin may manage this account.');
+        if ($checkSubmitted) {
+            abort_if($request->input('role') === 'Super Admin', 403, 'Only a Super Admin may assign this role.');
+        }
+
+        $matrices = $target ? [$target->effectivePermissions()] : [];
+        if ($checkSubmitted) {
+            $matrices[] = $this->normalizePermissions($request);
+        }
+        foreach ($matrices as $permissions) {
+            foreach ($permissions as $module => $actions) {
+                foreach ($actions as $action => $enabled) {
+                    abort_if($enabled && ! $actor->canAccess($module, $action), 403, 'You cannot manage access beyond your own permissions.');
+                }
+            }
+        }
+    }
+
     private function activeRoleDefinitions()
     {
         return Role::where('is_active', true)

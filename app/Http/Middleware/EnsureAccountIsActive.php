@@ -27,7 +27,7 @@ class EnsureAccountIsActive
 
         $user = User::find($authenticatedId);
 
-        if (! $user || ! $user->is_active) {
+        if (! $user || (! $user->is_active && ! $user->is_protected)) {
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();

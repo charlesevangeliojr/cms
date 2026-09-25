@@ -2,22 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
+use App\Models\ContactMessage;
+use App\Models\NewsletterSubscriber;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
 
 class DashboardController extends Controller
 {
     /**
-     * Show the admin dashboard.
-     *
-     * Gathers real stats (users, uploads, system info) and passes them
-     * to the backend.dashboard view. Frontend pages are listed here so
-     * the "Pages" card and quick links stay in one place.
+     * Show the admin dashboard — latest at top for all lists.
      */
     public function index()
     {
         $totalUsers = User::count();
-        $recentUsers = User::orderByDesc('created_at')->take(5)->get();
+        $recentUsers = User::latest('id')->take(5)->get();
+
+        $totalBanners = Banner::count();
+        $activeBanners = Banner::where('is_active', true)->count();
+        $recentBanners = Banner::latest('id')->take(5)->get();
+
+        $totalContacts = ContactMessage::count();
+        $unreadContacts = ContactMessage::where('is_read', false)->count();
+        $recentContacts = ContactMessage::latest('id')->take(5)->get();
+
+        $totalNewsletters = NewsletterSubscriber::count();
+        $activeNewsletters = NewsletterSubscriber::where('is_active', true)->count();
+        $recentNewsletters = NewsletterSubscriber::latest('id')->take(5)->get();
 
         $uploadCount = 0;
         $uploadPath = public_path('uploads');
@@ -37,6 +48,15 @@ class DashboardController extends Controller
         return view('backend.dashboard', [
             'totalUsers' => $totalUsers,
             'recentUsers' => $recentUsers,
+            'totalBanners' => $totalBanners,
+            'activeBanners' => $activeBanners,
+            'recentBanners' => $recentBanners,
+            'totalContacts' => $totalContacts,
+            'unreadContacts' => $unreadContacts,
+            'recentContacts' => $recentContacts,
+            'totalNewsletters' => $totalNewsletters,
+            'activeNewsletters' => $activeNewsletters,
+            'recentNewsletters' => $recentNewsletters,
             'uploadCount' => $uploadCount,
             'pages' => $pages,
             'pageCount' => count($pages),

@@ -6,7 +6,7 @@ $styles = [
     'dark' => 'bg-gray-900 text-white hover:bg-gray-700',
     'light' => 'bg-gray-100 text-gray-900 hover:bg-gray-200',
 ];
-$classes = 'inline-flex items-center px-4 py-2 rounded text-sm font-medium transition ' . ($styles[$variant] ?? $styles['primary']) . ' ' . ($attributes->get('class') ?? '');
+$classes = 'inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium transition ' . ($styles[$variant] ?? $styles['primary']) . ' ' . ($attributes->get('class') ?? '');
 @endphp
 
 @if ($href)

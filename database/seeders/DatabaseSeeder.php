@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +13,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Protected default admin — must not be removable (see UserController::destroy is_protected check).
+        User::updateOrCreate(
+            ['email' => 'cms@cms.com'],
+            [
+                'name' => 'CMS Admin',
+                'password' => Hash::make('*'),
+                'role' => 'Super Admin',
+                'is_active' => true,
+                'is_protected' => true,
+                'permissions' => User::fullAccessPermissions(),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

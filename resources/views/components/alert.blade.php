@@ -8,6 +8,6 @@ $styles = [
 ];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded border text-sm px-4 py-3 ' . ($styles[$type] ?? $styles['info'])]) }}>
+<div {{ $attributes->merge(['class' => 'rounded-xl border text-sm px-4 py-3 ' . ($styles[$type] ?? $styles['info'])]) }}>
     {{ $slot }}
 </div>

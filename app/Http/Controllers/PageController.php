@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banner;
+
 class PageController extends Controller
 {
     /**
@@ -14,7 +16,7 @@ class PageController extends Controller
         return [
             'site' => [
                 'name' => 'CMS Template',
-                'tagline' => 'Turbo Drive ON — no full refresh',
+                'tagline' => '',
             ],
             'nav' => [
                 ['label' => 'Home', 'url' => '/'],
@@ -22,7 +24,7 @@ class PageController extends Controller
             ],
             'home' => [
                 'heading' => 'Home',
-                'text' => 'Tailwind is working. Click About — Turbo swaps the page with no full refresh.',
+                'text' => 'Welcome to the CMS Template.',
                 'cta' => ['label' => 'Go to About', 'url' => '/about'],
                 'features' => [
                     ['title' => 'Fast navigation', 'text' => 'Turbo Drive swaps pages with no full reload.'],
@@ -46,11 +48,13 @@ class PageController extends Controller
     public function home()
     {
         $data = $this->mockData();
+        $banners = Banner::where('is_active', true)->latest('id')->get();
 
         return view('frontend.pages.home', [
             'site' => $data['site'],
             'nav' => $data['nav'],
             'page' => $data['home'],
+            'banners' => $banners,
         ]);
     }
 

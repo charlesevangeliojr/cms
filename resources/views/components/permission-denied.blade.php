@@ -5,7 +5,7 @@
     'actionLabel' => 'Back to safety',
 ])
 
-<div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+<div class="w-full max-w-md rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
     <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-600">
         <svg class="size-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008Zm-7.5-3.75a7.5 7.5 0 1 1 15 0 7.5 7.5 0 0 1-15 0Z" />

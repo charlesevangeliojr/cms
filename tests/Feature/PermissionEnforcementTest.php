@@ -47,10 +47,8 @@ class PermissionEnforcementTest extends TestCase
         ]);
         $banner = Banner::create([
             'title' => 'Restricted Banner',
+            'description' => 'Restricted banner description.',
             'image_path' => 'restricted.jpg',
-            'position' => Banner::POSITIONS[0],
-            'target_url' => '/restricted',
-            'is_active' => true,
         ]);
 
         $this->actingAs($user)->get(route('banners.edit', $banner))

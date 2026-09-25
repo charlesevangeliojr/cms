@@ -23,7 +23,7 @@
 </head>
 <body class="font-sans antialiased bg-gray-100 text-gray-900">
     <div class="min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-md bg-white rounded-lg shadow p-8">
+        <div class="w-full max-w-md bg-white rounded-xl shadow p-8">
             <h1 class="text-2xl font-bold mb-1">CMS Login</h1>
             <p class="text-sm text-gray-500 mb-6">Sign in to access the dashboard.</p>
 
@@ -36,18 +36,18 @@
 
                 <div>
                     <label for="email" class="block text-sm font-medium mb-1">Email</label>
-                    <input id="email" type="email" name="email" value="{{ old('email', 'cms@cms.com') }}" required autofocus
-                           class="w-full rounded border-gray-300 border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
+                           class="w-full rounded-xl border-gray-300 border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
                 </div>
 
                 <div>
                     <label for="password" class="block text-sm font-medium mb-1">Password</label>
-                    <input id="password" type="password" name="password" required
-                           class="w-full rounded border-gray-300 border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                    <input id="password" type="password" name="password" required autocomplete="current-password"
+                           class="w-full rounded-xl border-gray-300 border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
                 </div>
 
                 <label class="flex items-center gap-2 text-sm text-gray-600">
-                    <input type="checkbox" name="remember" value="1" class="rounded border-gray-300">
+                    <input type="checkbox" name="remember" value="1" class="rounded-xl border-gray-300">
                     Remember me
                 </label>
 
@@ -55,5 +55,6 @@
             </form>
         </div>
     </div>
+    @include('backend.partials.notifications')
 </body>
 </html>

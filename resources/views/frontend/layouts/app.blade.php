@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="turbo-cache-control" content="no-cache">
 
-    <title>@yield('title', 'CMS Template') — Laravel 11</title>
+    <title>@yield('title', 'CMS Template')</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -29,5 +29,6 @@
     </main>
 
     @include('frontend.partials.footer')
+    @include('backend.partials.notifications')
 </body>
 </html>

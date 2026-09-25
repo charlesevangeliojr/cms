@@ -9,7 +9,7 @@
                     @endforeach
                 </div>
             </div>
-            <p class="text-xs text-gray-400">{{ $site['tagline'] ?? 'Turbo Drive ON — no full refresh' }}</p>
+
         </div>
     </div>
 </nav>

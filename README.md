@@ -1,66 +1,44 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CMS Template
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 11 CMS with public Home/About pages and a permission-controlled admin area. Requires PHP 8.2 or later and Composer; see `composer.json` for dependencies.
 
-## About Laravel
+## Documentation
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Project standards](docs/PROJECT_STANDARDS.md): implementation and review rules.
+- [Structure guide](docs/STRUCTURE.txt): files, routes, data flow, and account workflows. This is the canonical structure guide; the former root copy has moved here.
+- [Security](docs/SECURITY.md): implemented defenses, deployment requirements, and known gaps.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Current features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Database-backed users, roles, banners, contact messages, and newsletter subscribers.
+- Account contact numbers, profile editing, and avatar uploads.
+- Shared in-page notification and deletion-confirmation modals, including login and public-form feedback.
+- Single-page user creation and editing: account details and permissions sit side by side on wide screens and stack on smaller screens, with a shared save bar.
+- Inline role creation in place of the selector, using the module permissions table, preserving unsaved account information; confirmed deletion of unused roles by Super Admin.
+- Role defaults with explicit per-user permission overrides and protected administrator accounts.
+- Login/public-form rate limits, browser response headers, and restrictions on delegated account management.
+- Public homepage banners come from the database; other Home/About content remains template data in `PageController`.
 
-## Learning Laravel
+## Local setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. Run `composer install`.
+2. Copy `.env.example` to `.env` if it does not already exist. Configure your local database and `APP_URL`.
+3. Run `php artisan key:generate` for a new installation, then `php artisan migrate`.
+4. For an isolated development database only, `php artisan db:seed` creates or resets the template administrator. Review `database/seeders/DatabaseSeeder.php` first. It contains a fixed development password and must not be run against production accounts.
+5. Run `php artisan serve`, then open `/` or `/admin/login`.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Current layouts load browser assets from CDNs. There is no checked-in `package.json`; an npm/Vite build is not part of the current setup. Banner and avatar files are stored directly in `public/uploads/banners` and `public/uploads/avatars` through configured disks. These disks do not require `storage:link`. Image processing uses PHP GD when available.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Verification
 
-## Laravel Sponsors
+```sh
+php artisan test
+php vendor/bin/pint --test
+php artisan view:cache
+php artisan view:clear
+composer audit --locked
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Last recorded code verification on 2026-09-25: 39 tests passed and one homepage `ExampleTest` failed because its test database lacks the `banners` table. Changed security PHP files passed Pint and Blade compilation passed. Repository-wide Pint previously reported issues in other files. The dependency audit could not run because Composer was unavailable in the agent environment. This documentation update does not represent a fresh full test run.
 
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Before deployment, follow [Security](docs/SECURITY.md), including replacing development credentials, HTTPS, disabling debug output, and serving only `public/`.

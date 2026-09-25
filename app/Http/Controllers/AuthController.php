@@ -38,7 +38,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            if (! Auth::user()->is_active) {
+            if (! Auth::user()->is_active && ! Auth::user()->is_protected) {
                 Auth::logout();
 
                 $request->session()->invalidate();

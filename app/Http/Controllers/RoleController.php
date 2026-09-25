@@ -29,6 +29,8 @@ class RoleController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
             'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['array'],
+            'permissions.*.*' => ['boolean'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -40,6 +42,10 @@ class RoleController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
+        if ($request->expectsJson()) {
+            return response()->json(['role' => $role->only(['name', 'permissions', 'is_active'])], 201);
+        }
+
         return redirect()
             ->route('users.create')
             ->with('success', "Role {$role->name} created successfully.")
@@ -47,8 +53,18 @@ class RoleController extends Controller
     }
 
     /**
-     * Only the protected Super Admin role may create new roles.
+     * Delete only unused roles; protect the built-in administrator role.
      */
+    public function destroy(Role $role)
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403, 'Only a Super Admin may delete roles.');
+        abort_if($role->name === 'Super Admin', 422, 'The Super Admin role cannot be deleted.');
+        abort_if($role->users()->exists(), 422, 'This role is assigned to accounts. Assign those accounts a different role before deleting it.');
+        $role->delete();
+
+        return response()->json(['message' => 'Role deleted successfully.']);
+    }
+
     private function ensureSuperAdmin(): void
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403, 'You are not allowed to create roles.');

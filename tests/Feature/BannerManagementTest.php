@@ -24,7 +24,7 @@ class BannerManagementTest extends TestCase
     {
         $admin = $this->superAdmin();
         Banner::create($this->bannerData('Persisted Banner'));
-        Banner::create($this->bannerData('Inactive Banner', false));
+        Banner::create($this->bannerData('Inactive Banner'));
 
         $response = $this->actingAs($admin)->get(route('banners.index'));
 
@@ -41,8 +41,7 @@ class BannerManagementTest extends TestCase
 
         $response = $this->actingAs($admin)->post(route('banners.store'), [
             'title' => 'Database Banner',
-            'position' => Banner::POSITIONS[0],
-            'target_url' => '/database-banner',
+            'description' => 'This is a database banner description.',
             'is_active' => '1',
             'image' => $this->fakeBannerImage(),
         ]);
@@ -55,8 +54,7 @@ class BannerManagementTest extends TestCase
         $this->assertDatabaseHas('banners', [
             'id' => $banner->id,
             'title' => 'Database Banner',
-            'position' => Banner::POSITIONS[0],
-            'target_url' => '/database-banner',
+            'description' => 'This is a database banner description.',
             'is_active' => true,
         ]);
         Storage::disk('banners')->assertExists($banner->image_path);
@@ -69,9 +67,7 @@ class BannerManagementTest extends TestCase
 
         $response = $this->actingAs($admin)->post(route('banners.store'), [
             'title' => 'Oversized Banner',
-            'position' => Banner::POSITIONS[0],
-            'target_url' => '/oversized-banner',
-            'is_active' => '1',
+            'description' => 'Oversized banner description.',
             'image' => UploadedFile::fake()->createWithContent(
                 'oversized.png',
                 $image.str_repeat('0', (3 * 1024 * 1024) - strlen($image)),
@@ -91,8 +87,7 @@ class BannerManagementTest extends TestCase
 
         $response = $this->actingAs($admin)->put(route('banners.update', $banner), [
             'title' => 'Updated Banner',
-            'position' => Banner::POSITIONS[1],
-            'target_url' => 'https://example.com/updated',
+            'description' => 'Updated description for the banner.',
             'is_active' => '1',
             'image' => $this->fakeBannerImage('replacement.png'),
         ]);
@@ -103,7 +98,7 @@ class BannerManagementTest extends TestCase
         $banner->refresh();
 
         $this->assertSame('Updated Banner', $banner->title);
-        $this->assertSame(Banner::POSITIONS[1], $banner->position);
+        $this->assertSame('Updated description for the banner.', $banner->description);
         $this->assertNotSame($oldImagePath, $banner->image_path);
         Storage::disk('banners')->assertMissing($oldImagePath);
         Storage::disk('banners')->assertExists($banner->image_path);
@@ -144,14 +139,13 @@ class BannerManagementTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function bannerData(string $title, bool $isActive = true): array
+    private function bannerData(string $title): array
     {
         return [
             'title' => $title,
+            'description' => $title.' description body.',
             'image_path' => str($title)->slug().'.jpg',
-            'position' => Banner::POSITIONS[0],
-            'target_url' => '/'.str($title)->slug(),
-            'is_active' => $isActive,
+            'is_active' => true,
         ];
     }
 }

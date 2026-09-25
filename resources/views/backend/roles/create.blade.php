@@ -9,7 +9,7 @@
             <h2 class="text-2xl font-bold tracking-tight text-gray-900">Create New Role</h2>
             <p class="text-sm text-gray-500">Create a database role and choose its default module permissions.</p>
         </div>
-        <a href="{{ route('users.create') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Back to Users</a>
+        <a href="{{ route('users.create') }}" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Back to Users</a>
     </div>
 
     @if ($errors->any())
@@ -31,11 +31,11 @@
                     <label for="name" class="mb-1.5 block text-sm font-semibold text-gray-900">Role Name *</label>
                     <input id="name" name="name" type="text" value="{{ old('name') }}" required maxlength="255"
                            placeholder="e.g. Release Manager"
-                           class="w-full rounded-lg border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                           class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div class="flex items-end">
-                    <div class="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-4">
                         <div>
                             <p class="text-sm font-semibold text-gray-900">Active Role</p>
                             <p class="mt-0.5 text-xs text-gray-500">Active roles appear in the user role dropdown.</p>
@@ -43,7 +43,7 @@
                         <label class="inline-flex cursor-pointer">
                             <input type="hidden" name="is_active" value="0">
                             <input type="checkbox" name="is_active" value="1" class="peer sr-only" @checked(old('is_active', true))>
-                            <span class="flex h-6 w-6 items-center justify-center rounded bg-gray-200 text-white transition peer-checked:bg-emerald-600 peer-checked:[&_svg]:opacity-100">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-xl bg-gray-200 text-white transition peer-checked:bg-emerald-600 peer-checked:[&_svg]:opacity-100">
                                 <svg class="h-4 w-4 opacity-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                 </svg>
@@ -63,21 +63,46 @@
                     <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
                         <tr>
                             <th class="px-6 py-3 font-semibold">Module</th>
-                            <th class="px-4 py-3 text-center font-semibold">View</th>
-                            <th class="px-4 py-3 text-center font-semibold">Add</th>
-                            <th class="px-4 py-3 text-center font-semibold">Edit</th>
-                            <th class="px-4 py-3 text-center font-semibold">Delete</th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all View">
+                                    <input type="checkbox" class="col-toggle size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-action="view" onchange="toggleColumn('view', this.checked)">
+                                    <span>View</span>
+                                </label>
+                            </th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Add">
+                                    <input type="checkbox" class="col-toggle size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-action="add" onchange="toggleColumn('add', this.checked)">
+                                    <span>Add</span>
+                                </label>
+                            </th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Edit">
+                                    <input type="checkbox" class="col-toggle size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-action="edit" onchange="toggleColumn('edit', this.checked)">
+                                    <span>Edit</span>
+                                </label>
+                            </th>
+                            <th class="px-4 py-3 text-center font-semibold">
+                                <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Delete">
+                                    <input type="checkbox" class="col-toggle size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-action="delete" onchange="toggleColumn('delete', this.checked)">
+                                    <span>Delete</span>
+                                </label>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach ($modules as $module)
                             <tr>
-                                <td class="px-6 py-3 font-semibold text-gray-800">{{ $module['name'] }}</td>
+                                <td class="px-6 py-3">
+                                    <label class="inline-flex items-center gap-2 cursor-pointer" title="Check/uncheck all for {{ $module['name'] }}">
+                                        <input type="checkbox" class="row-toggle size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-module="{{ $module['key'] }}" onchange="toggleRow('{{ $module['key'] }}', this.checked)">
+                                        <span class="font-semibold text-gray-800 text-sm">{{ $module['name'] }}</span>
+                                    </label>
+                                </td>
                                 @foreach (['view', 'add', 'edit', 'delete'] as $action)
                                     <td class="px-4 py-3 text-center">
                                         <input type="checkbox" name="permissions[{{ $module['key'] }}][{{ $action }}]" value="1"
                                                @checked(old("permissions.{$module['key']}.{$action}", false))
-                                               class="size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                               class="perm-check size-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                                     </td>
                                 @endforeach
                             </tr>
@@ -88,8 +113,8 @@
         </div>
 
         <div class="flex justify-end gap-3">
-            <a href="{{ route('users.create') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a>
-            <button type="submit" class="rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create Role</button>
+            <a href="{{ route('users.create') }}" class="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a>
+            <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Create Role</button>
         </div>
     </form>
 </div>

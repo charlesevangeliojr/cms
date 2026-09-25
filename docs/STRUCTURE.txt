@@ -1,0 +1,164 @@
+CMS PROJECT - STRUCTURE & GUIDE
+==============================
+Canonical location: docs/STRUCTURE.txt
+Related documents: README.md, docs/PROJECT_STANDARDS.md, docs/SECURITY.md
+Reviewed against the working tree: 2026-09-25
+
+REQUEST AND DATA FLOW
+---------------------
+Request -> routes/web.php -> middleware -> controller validation/models -> Blade.
+bootstrap/app.php registers auth-related aliases and global SecurityHeaders.
+Public files can be served directly by the web server without Laravel middleware.
+
+Public Home/About pages use PageController template arrays for site/nav/page.
+Home additionally queries active Banner records and renders public submission forms.
+Admin modules use database records. Do not introduce mock admin records.
+
+APP/
+----
+app/Http/Controllers/
+  AuthController.php       Login/logout, session renewal, active/access checks.
+  PageController.php       Public Home/About content and active homepage banners.
+  DashboardController.php  Counts/recent records for users, banners, contacts and
+                           newsletters, uploaded file count and system information.
+  UserController.php       Account CRUD, contact numbers, complete permission maps,
+                           protected-account and delegated-access restrictions.
+  RoleController.php       Super Admin role creation. JSON requests return the
+                           created role (201); ordinary forms redirect to user creation.
+  ProfileController.php    Current user's profile, password, contact and avatar.
+  BannerController.php     Banner CRUD and image storage/cropping.
+  ContactController.php    Public messages and permission-controlled admin inbox.
+  NewsletterController.php Public subscriptions and admin subscriber management.
+
+app/Models/
+  User.php                 Authentication, role defaults, effective permissions,
+                           protected/active flags, avatar URL and landing route.
+  Role.php                 Database role definition and default permissions.
+  Banner.php, ContactMessage.php, NewsletterSubscriber.php: module records.
+
+app/Http/Middleware/
+  EnsureAccountIsActive.php Rechecks account state on authenticated admin requests.
+  EnsureHasPermission.php   Enforces module/action permissions.
+  SecurityHeaders.php       Browser defenses, admin no-store/noindex response headers.
+
+app/Providers/AppServiceProvider.php registers named login/public rate limits.
+
+ROUTES
+------
+See routes/web.php for exact bindings; php artisan route:list shows registered routes.
+
+Public:
+  GET  /                         home
+  GET  /about                    about
+  POST /contact                  contact.store (public-submissions throttle)
+  POST /newsletter               newsletter.store (same throttle bucket)
+  GET  /admin/login              login
+  POST /admin/login              login.attempt (admin-login throttle)
+  POST /admin/logout             logout (web CSRF protection)
+  GET  /up                       framework health endpoint, registered in bootstrap
+
+Authenticated, active-account routes:
+  GET  /admin/dashboard          dashboard; dashboard:view
+  GET  /admin/profile            profile.edit; own profile, no module permission
+  PUT  /admin/profile            profile.update
+  DELETE /admin/profile/avatar   profile.avatar.destroy
+  GET  /admin/roles/create       roles.create; controller requires Super Admin
+  POST /admin/roles              roles.store; controller requires Super Admin
+  DELETE /admin/roles/{role:name} roles.destroy; Super Admin; unused roles only
+
+For banners and users:
+  GET    /admin/<module>              <module>.index; view
+  GET    /admin/<module>/create       <module>.create; add
+  POST   /admin/<module>              <module>.store; add
+  GET    /admin/<module>/{record}/edit <module>.edit; edit
+  PUT    /admin/<module>/{record}      <module>.update; edit
+  DELETE /admin/<module>/{record}      <module>.destroy; delete
+  Parameter names are {banner} and {user}, respectively.
+
+For contacts and newsletters:
+  GET    /admin/<module>          <module>.index; view
+  PATCH  /admin/<module>/{record} <module>.update; edit
+  DELETE /admin/<module>/{record} <module>.destroy; delete
+  Parameter names are {contact} and {newsletter}, respectively.
+
+Legacy redirects: /home -> / (301); /login -> /admin/login and
+/dashboard -> /admin/dashboard (302).
+
+VIEWS AND ACCOUNT WORKFLOWS
+--------------------------
+resources/views/frontend/
+  layouts/app.blade.php: public shell; partials/header and footer; pages/home
+  and about; sections/features and stats. PageController supplies site/nav/page;
+  home also receives banners. Keep queries out of Blade.
+
+resources/views/backend/
+  layouts/sidebar.blade.php: routed admin pages' shared shell, navigation behavior,
+  permission checkbox synchronization and role-default initialization.
+  partials/sidebar.blade.php: module navigation.
+  partials/notifications.blade.php: shared acknowledgement and destructive-confirmation modals
+  used by admin, frontend and login layouts. Forms opt in with data-confirm.
+  dashboard.blade.php: DashboardController's routed dashboard view.
+  pages/dashboard.blade.php: alternate template, not the view returned by that route.
+  auth/login.blade.php: standalone login page.
+  users/create, edit, index.blade.php: account management.
+  roles/create.blade.php: standalone role form retained for direct navigation.
+  profile/edit.blade.php: current user's profile and avatar crop interface.
+  banners/: list, create/edit and shared _form.blade.php.
+  contacts/index.blade.php and newsletters/index.blade.php: module lists/actions.
+
+Shared account partials:
+  partials/user-form-actions.blade.php: shared save/cancel bar and password confirmation.
+  Account and access panels remain visible together, in responsive columns on wide
+  screens and stacked on mobile. Both sections save in one request.
+  partials/account-contact.blade.php: optional contact number, up to 20 characters;
+  shared by create/edit user and profile forms, with old input and field errors.
+  partials/user-role-options.blade.php: existing-role and inline-create controls.
+  Super Admin switches the selector to a role name field, uses the permissions table and
+  clicks Create and select role. Select Existing Role restores prior account permissions.
+  A CSRF-protected fetch sends only role data to roles.store; no account form reload.
+  Success adds/selects the active role and stores the selected permissions as defaults.
+  Role creation persists immediately, even if the account form is later cancelled.
+  A separate Delete selected role button appears after selection and opens confirmation. The server rejects Super Admin
+  and assigned roles (including inactive accounts); success removes the dropdown option.
+  Validation failures keep account fields in place. Saving the account is separate.
+
+Only active roles appear in dropdowns. Changing role applies its defaults;
+user-specific selections are saved as complete true/false maps. Missing checkboxes
+mean false. Super Admin is a special authorization role, despite role data being
+stored in the database. Protected accounts cannot be deleted and remain active;
+only Super Admin can manage them. Delegated managers cannot manage greater access.
+
+resources/views/components/: shared buttons, cards, alerts, permission-denied UI.
+resources/views/errors/: full-page HTTP errors.
+resources/views/welcome.blade.php: Laravel reference template, not routed at /.
+
+STORAGE AND DATABASE
+--------------------
+public/ is the web root. public/frontend/ holds checked-in public assets.
+public/uploads/banners/ and public/uploads/avatars/ hold runtime uploads.
+config/filesystems.php defines the corresponding disks and public URLs.
+Do not commit uploads or allow script execution in these directories.
+resources/css and resources/js contain source assets; current layouts use CDNs.
+There is no checked-in package.json or required npm build workflow.
+
+Migrations define users, cache/jobs, account profile/protection/avatar fields,
+roles/defaults, banners, contact messages and newsletter subscribers.
+database/factories/ contains test data factories.
+database/seeders/DatabaseSeeder.php currently creates/resets a development admin
+with fixed credentials: development only; unsafe to run on production accounts.
+storage/ holds runtime logs/cache/compiled views. vendor/ holds Composer packages.
+
+TESTS AND CHANGE RULES
+---------------------
+tests/Feature/: account contacts, roles/defaults/inline creation, protected accounts,
+active sessions, permissions, banners, inbox/subscribers, dashboard, notification modals and security.
+tests/Unit/: isolated checks including system metric formatting.
+phpunit.xml uses an in-memory SQLite database for tests.
+Run commands and read known verification limits in README.md and docs/SECURITY.md.
+
+New module: add migration/model/controller, named and permission-protected routes,
+backend views, permission definitions and behavior tests. Add a disk for uploads.
+New public page: add controller data/method, route, page and reusable sections;
+preserve the site/nav/page contract and explicitly pass any additional data.
+Update this guide when structure/routes change and PROJECT_STANDARDS.md when
+reusable rules change. Documentation must not contain real credentials.

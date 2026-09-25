@@ -14,14 +14,12 @@ return new class extends Migration
         Schema::create('banners', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->text('description');
             $table->string('image_path');
-            $table->string('position');
-            $table->string('target_url', 2048);
             $table->boolean('is_active')->default(true);
-            $table->unsignedBigInteger('clicks')->default(0);
             $table->timestamps();
 
-            $table->index(['is_active', 'position']);
+            $table->index(['is_active']);
         });
     }
 

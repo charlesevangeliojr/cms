@@ -8,12 +8,6 @@ use Illuminate\Support\Facades\Storage;
 
 class Banner extends Model
 {
-    public const POSITIONS = [
-        'Homepage Hero',
-        'Sidebar Top',
-        'Footer Banner',
-    ];
-
     /**
      * The attributes that are mass assignable.
      *
@@ -21,9 +15,8 @@ class Banner extends Model
      */
     protected $fillable = [
         'title',
+        'description',
         'image_path',
-        'position',
-        'target_url',
         'is_active',
     ];
 
@@ -36,7 +29,6 @@ class Banner extends Model
     {
         return [
             'is_active' => 'boolean',
-            'clicks' => 'integer',
         ];
     }
 
@@ -46,8 +38,8 @@ class Banner extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::get(
-            fn (?string $value): ?string => $value
-                ? Storage::disk('banners')->url($value)
+            fn (mixed $value, array $attributes): ?string => ! empty($attributes['image_path'])
+                ? Storage::disk('banners')->url($attributes['image_path'])
                 : null,
         );
     }

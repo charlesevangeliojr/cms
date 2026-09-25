@@ -50,7 +50,16 @@ return [
         'banners' => [
             'driver' => 'local',
             'root' => public_path('uploads/banners'),
-            'url' => env('APP_URL').'/uploads/banners',
+            'url' => '/uploads/banners',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => true,
+        ],
+
+        'avatars' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/avatars'),
+            'url' => '/uploads/avatars',
             'visibility' => 'public',
             'throw' => false,
             'report' => true,
