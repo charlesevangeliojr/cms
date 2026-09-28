@@ -213,7 +213,7 @@ A task is done only when all applicable items pass:
 ## 12. Basic security
 
 - Keep login and public submissions rate-limited.
-- Lock admin logins with an escalating countdown after failures (10s start, doubling, 15-minute cap); disable the form until it ends and clear the error then. Cap each account at 3 active sessions, kicking the oldest.
+- Lock admin logins with an escalating countdown after failures (10s start, doubling, 15-minute cap); disable the form until it ends and clear the error then. Cap each account at 3 active sessions, kicking the oldest. Sign out accounts idle past SESSION_TIMEOUT minutes (30 by default).
 - Account managers may not manage or grant access beyond their own permissions; Super Admin controls protected accounts.
 - Keep browser response defenses enabled and admin pages non-cacheable.
 - Follow [SECURITY.md](SECURITY.md) for deployment requirements and remaining limitations.

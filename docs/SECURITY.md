@@ -7,6 +7,7 @@ Reviewed against the working tree on 2026-09-28. See [README](../README.md) for 
 - Login POSTs: 5 requests per minute per email/IP and 30 per IP. Contact and newsletter POSTs share 5 requests per minute per IP. These count all requests, including invalid submissions.
 - Failed logins trigger an escalating lockout per email/IP: 10 seconds, doubling each consecutive failure up to 15 minutes. The login form shows the countdown, stays disabled until it ends, then clears the error. A successful login resets the counter.
 - Each account is capped at 3 active database sessions; older sessions beyond the newest are deleted on login.
+- Accounts idle past SESSION_TIMEOUT minutes (30 by default) are signed out with an expiry message.
 - Browser headers deny framing, disable MIME sniffing, restrict referrers, disable unused camera/microphone/location access, block object embeds and cross-origin form submissions, and restrict base URLs.
 - Admin responses use no-store and noindex headers. Noindex is a crawler hint, not access control.
 - Delegated account managers cannot assign Super Admin, manage protected/Super Admin accounts, manage accounts with greater permissions, or grant permissions they lack. Super Admin retains existing management authority.

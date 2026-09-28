@@ -47,6 +47,7 @@ app/Models/
 app/Http/Middleware/
   EnsureAccountIsActive.php Rechecks account state on authenticated admin requests.
   EnsureHasPermission.php   Enforces module/action permissions.
+  SessionTimeout.php        Signs out accounts idle past SESSION_TIMEOUT minutes.
   SecurityHeaders.php       Browser defenses, admin no-store/noindex response headers.
 
 app/Providers/AppServiceProvider.php registers named login/public rate limits.

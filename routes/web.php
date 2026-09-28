@@ -29,7 +29,7 @@ Route::post('/admin/login', [AuthController::class, 'login'])->middleware('throt
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Admin (sidebar layout, login required + module permissions)
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth', 'active', 'timeout'])->group(function () {
     // Profile — any authenticated user, no module permission required
     Route::get('/admin/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/admin/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -34,6 +34,18 @@ return [
 
     'lifetime' => (int) env('SESSION_LIFETIME', 120),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Idle Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Minutes of inactivity before an authenticated admin is signed out by
+    | the session timeout middleware.
+    |
+    */
+
+    'timeout' => (int) env('SESSION_TIMEOUT', 30),
+
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 
     /*
