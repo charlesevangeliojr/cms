@@ -48,8 +48,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Email Address *</label>
-                        <input type="email" name="email" required maxlength="255" data-validate="email" value="{{ old('email', $user->email) }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400">Enter a valid email address.</p>
+                        <input type="email" name="email" required maxlength="255" value="{{ old('email', $user->email) }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     </div>
                     @include('backend.partials.account-contact')
                     <div>
@@ -159,27 +158,27 @@
                                     <tr>
                                         <th class="px-4 py-3">Module</th>
                                         <th class="px-2 py-3 text-center">
-                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Can View">
+                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all View">
                                                 <input type="checkbox" class="col-toggle size-4 rounded border-2 border-white bg-white/20 text-indigo-600 focus:ring-white focus:ring-offset-0" data-action="view" onchange="toggleColumn('view', this.checked)">
-                                                <span>Can View</span>
+                                                <span>View</span>
                                             </label>
                                         </th>
                                         <th class="px-2 py-3 text-center">
-                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Can Add">
+                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Add">
                                                 <input type="checkbox" class="col-toggle size-4 rounded border-2 border-white bg-white/20 text-indigo-600 focus:ring-white focus:ring-offset-0" data-action="add" onchange="toggleColumn('add', this.checked)">
-                                                <span>Can Add</span>
+                                                <span>Add</span>
                                             </label>
                                         </th>
                                         <th class="px-2 py-3 text-center">
-                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Can Edit">
+                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Edit">
                                                 <input type="checkbox" class="col-toggle size-4 rounded border-2 border-white bg-white/20 text-indigo-600 focus:ring-white focus:ring-offset-0" data-action="edit" onchange="toggleColumn('edit', this.checked)">
-                                                <span>Can Edit</span>
+                                                <span>Edit</span>
                                             </label>
                                         </th>
                                         <th class="px-2 py-3 text-center">
-                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Can Delete">
+                                            <label class="inline-flex flex-col items-center gap-1 cursor-pointer" title="Check/uncheck all Delete">
                                                 <input type="checkbox" class="col-toggle size-4 rounded border-2 border-white bg-white/20 text-indigo-600 focus:ring-white focus:ring-offset-0" data-action="delete" onchange="toggleColumn('delete', this.checked)">
-                                                <span>Can Delete</span>
+                                                <span>Delete</span>
                                             </label>
                                         </th>
                                     </tr>

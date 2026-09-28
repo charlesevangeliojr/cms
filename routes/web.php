@@ -37,8 +37,6 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])
         ->middleware('permission:dashboard,view')->name('dashboard');
-    Route::get('/admin/roles/create', [RoleController::class, 'create'])
-        ->name('roles.create');
     Route::post('/admin/roles', [RoleController::class, 'store'])
         ->name('roles.store');
     Route::delete('/admin/roles/{role:name}', [RoleController::class, 'destroy'])->where('role', '.*')->name('roles.destroy');

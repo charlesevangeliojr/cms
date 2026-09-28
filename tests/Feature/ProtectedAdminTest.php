@@ -66,7 +66,7 @@ class ProtectedAdminTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect(route('users.index'))
+        $response->assertRedirect(route('users.edit', $admin))
             ->assertSessionHas('success', 'User updated successfully.');
 
         $admin->refresh();

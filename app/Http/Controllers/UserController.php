@@ -33,8 +33,9 @@ class UserController extends Controller
         $roleDefaults = $roleDefinitions
             ->mapWithKeys(fn (Role $role) => [$role->name => $role->permissions ?? []])
             ->all();
+        $takenEmails = User::pluck('email')->map(fn ($email) => strtolower($email))->values()->all();
 
-        return view('backend.users.create', compact('roles', 'modules', 'actions', 'checkedPermissions', 'roleDefaults'));
+        return view('backend.users.create', compact('roles', 'modules', 'actions', 'checkedPermissions', 'roleDefaults', 'takenEmails'));
     }
 
     /**
@@ -84,8 +85,9 @@ class UserController extends Controller
         $roleDefaults = $roleDefinitions
             ->mapWithKeys(fn (Role $role) => [$role->name => $role->permissions ?? []])
             ->all();
+        $takenEmails = User::where('id', '!=', $user->id)->pluck('email')->map(fn ($email) => strtolower($email))->values()->all();
 
-        return view('backend.users.edit', compact('roles', 'modules', 'actions', 'user', 'checkedPermissions', 'roleDefaults'));
+        return view('backend.users.edit', compact('roles', 'modules', 'actions', 'user', 'checkedPermissions', 'roleDefaults', 'takenEmails'));
     }
 
     /**

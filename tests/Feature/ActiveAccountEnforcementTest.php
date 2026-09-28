@@ -33,7 +33,7 @@ class ActiveAccountEnforcementTest extends TestCase
             'name' => $target->name,
             'email' => $target->email,
             'role' => 'Super Admin',
-        ])->assertRedirect(route('users.index'));
+        ])->assertRedirect(route('users.edit', $target));
 
         $this->actingAs($target)->get(route('dashboard'))
             ->assertRedirect(route('login'))

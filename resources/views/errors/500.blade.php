@@ -17,7 +17,11 @@
 <body class="font-sans antialiased bg-gray-100 text-gray-900">
     <div class="min-h-screen flex items-center justify-center px-4">
         <x-card title="500 — Server error" class="max-w-md w-full text-center">
-            <p class="text-gray-600 mb-4">Something went wrong on our end. Please try again later.</p>
+            @if (($exception ?? null) instanceof \Illuminate\Database\QueryException || ($exception ?? null) instanceof \PDOException)
+                <p class="text-gray-600 mb-4">Database error: we could not reach or update the database. Please try again later.</p>
+            @else
+                <p class="text-gray-600 mb-4">Something went wrong on our end. Please try again later.</p>
+            @endif
             <x-button :href="url('/')" variant="dark">Back to Home</x-button>
         </x-card>
     </div>

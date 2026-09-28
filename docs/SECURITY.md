@@ -1,16 +1,19 @@
 # Basic security defenses
 
-Reviewed against the working tree on 2026-09-25. See [README](../README.md) for setup and [project standards](PROJECT_STANDARDS.md) for development rules.
+Reviewed against the working tree on 2026-09-28. See [README](../README.md) for setup and [project standards](PROJECT_STANDARDS.md) for development rules.
 
 ## Implemented
 
 - Login POSTs: 5 requests per minute per email/IP and 30 per IP. Contact and newsletter POSTs share 5 requests per minute per IP. These count all requests, including invalid submissions.
+- Failed logins trigger an escalating lockout per email/IP: 10 seconds, doubling each consecutive failure up to 15 minutes. The login form shows the countdown, stays disabled until it ends, then clears the error. A successful login resets the counter.
+- Each account is capped at 3 active database sessions; older sessions beyond the newest are deleted on login.
 - Browser headers deny framing, disable MIME sniffing, restrict referrers, disable unused camera/microphone/location access, block object embeds and cross-origin form submissions, and restrict base URLs.
 - Admin responses use no-store and noindex headers. Noindex is a crawler hint, not access control.
 - Delegated account managers cannot assign Super Admin, manage protected/Super Admin accounts, manage accounts with greater permissions, or grant permissions they lack. Super Admin retains existing management authority.
 - Role deletion requires Super Admin authorization and rejects the Super Admin role or any role with assigned accounts. The UI confirms deletion before sending the CSRF-protected request.
 - Permission matrices validate nested arrays and boolean values.
 - Existing Laravel CSRF protection, escaped Blade output, bound database queries, password hashing, and upload validation remain in use. The CSRF meta token is intentional and is not a secret credential leak.
+- Server errors render a generic page; database failures show a database-specific message without query details.
 
 ## Deployment requirements and limits
 
@@ -25,6 +28,6 @@ Reviewed against the working tree on 2026-09-25. See [README](../README.md) for 
 
 ## Verification
 
-Last recorded code checks (2026-09-25; not rerun for this documentation-only update): 39 passed, 1 failed. Changed security PHP files passed Pint and Blade cache/clear passed. Earlier repository-wide Pint reported unrelated formatting issues.
+Last recorded code checks (2026-09-28): 53 passed, 1 failed. LoginSecurityTest (5 tests) covers lockout escalation, blocking during lockout, reset on success, and the session cap. ErrorPageTest (3 tests) covers the database-specific 500 message.
 
 SecurityDefenseTest covers headers, login/public throttling, blocked privilege escalation and permitted delegated creation. The full suite still has the existing ExampleTest failure because its homepage test does not migrate the banners table.

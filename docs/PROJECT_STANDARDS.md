@@ -94,6 +94,7 @@ Rules:
 - `frontend/`: public pages.
 - `backend/`: authenticated CMS pages.
 - `backend/layouts/`: shared admin shell.
+- `backend/<module>/`: one folder per module holding its own views (`index`, `create`, `edit`). Code that belongs to a module lives in that folder and in the module's controller; only truly shared markup goes in `backend/partials/` or `components/`. Do not scatter a module's views or logic across other folders.
 - `backend/partials/`: navigation, toasts, reusable page fragments.
 - `components/`: shared UI primitives.
 - `errors/`: full-page HTTP error screens.
@@ -146,9 +147,9 @@ Rules:
 - Use responsive cards, stacked rows, breadcrumbs, and clear action buttons.
 - Associate every label with its input.
 - Explain passwords, roles, permissions, uploads, and destructive actions inline.
-- Keep role creation inline in the selector area, using the module permissions table. Preserve account fields and restore prior permission selections when cancelling role creation. Persist/select the role before the separate account save; explain that selected permissions become role defaults.
-- Use the shared contact-number partial on account forms; keep contact optional and limited to 20 characters.
-- Use the shared in-page notification modal for success, error, info and validation summaries. Messages wait for acknowledgement.
+- Keep role creation inline in the selector area, using the module permissions table. Preserve account fields and restore prior permission selections when cancelling role creation. Creating the role and saving the account happen through the single shared save button: the role is created and selected first, then the account submits. Show a live available/taken hint while typing the role name; explain that selected permissions become role defaults.
+- Use the shared contact-number partial on account forms; keep contact optional with a full country list (flag plus dial code, searchable) and a numeric local number up to 10 digits.
+- Use the shared top toasts for success, error, info and validation summaries. Toasts pop in, show a countdown bar and auto-dismiss with no buttons. Reserve the centered modal for destructive confirmations only.
 - Keep form validation errors inline with the relevant form.
 - Role deletion requires explicit confirmation and Super Admin authorization. Reject deletion of Super Admin and roles assigned to any account, including inactive accounts.
 - Keep full-page errors, including 403 permission errors, as full pages.
@@ -206,11 +207,13 @@ A task is done only when all applicable items pass:
 - Provide a skip-to-content link and accessible names for navigation and filters.
 - Show action text alongside banner icons; convert banner table rows into stacked cards on mobile.
 - Only display create, edit, and delete actions when the account has the corresponding permission.
+- Use public/images/cms-logo.png for the sidebar logo, public header, login branding, and every page favicon.
 - Keep interface copy focused on the user's task.
 
 ## 12. Basic security
 
 - Keep login and public submissions rate-limited.
+- Lock admin logins with an escalating countdown after failures (10s start, doubling, 15-minute cap); disable the form until it ends and clear the error then. Cap each account at 3 active sessions, kicking the oldest.
 - Account managers may not manage or grant access beyond their own permissions; Super Admin controls protected accounts.
 - Keep browser response defenses enabled and admin pages non-cacheable.
 - Follow [SECURITY.md](SECURITY.md) for deployment requirements and remaining limitations.

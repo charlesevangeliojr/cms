@@ -3,8 +3,13 @@
 <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-40 flex h-screen w-64 -translate-x-full shrink-0 transform flex-col bg-gray-900 text-gray-200 transition-transform duration-200 ease-in-out md:sticky md:top-0 md:translate-x-0">
     <div class="flex shrink-0 items-start justify-between gap-3 border-b border-gray-800 px-6 py-5">
         <div class="min-w-0">
-            <a href="{{ route($landingRouteName) }}" class="font-bold text-lg tracking-tight text-white">CMS Workspace</a>
-            <p class="text-xs text-gray-400 mt-1 truncate">{{ auth()->user()->email ?? '' }}</p>
+            <a href="{{ route($landingRouteName) }}" class="flex items-center gap-2.5">
+                <img src="{{ asset('images/cms-logo.png') }}" alt="CMS Workspace logo" class="h-9 w-9 shrink-0 object-contain">
+                <span class="min-w-0">
+                    <span class="block font-bold text-lg tracking-tight text-white leading-tight">CMS Workspace</span>
+                    <span class="block text-xs text-gray-400 mt-0.5 truncate">{{ auth()->user()->email ?? '' }}</span>
+                </span>
+            </a>
         </div>
         <button type="button" onclick="toggleAdminSidebar(false)" aria-label="Close navigation menu" class="rounded-xl p-1.5 text-gray-400 hover:bg-gray-800 hover:text-white md:hidden">
             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>

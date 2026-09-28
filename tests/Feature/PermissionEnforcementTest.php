@@ -76,7 +76,7 @@ class PermissionEnforcementTest extends TestCase
             'is_active' => '1',
         ]);
 
-        $response->assertRedirect(route('users.index'))
+        $response->assertRedirect(route('users.edit', $target))
             ->assertSessionHas('success', 'User updated successfully.');
 
         $target->refresh();

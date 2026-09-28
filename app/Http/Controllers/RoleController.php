@@ -8,18 +8,6 @@ use Illuminate\Http\Request;
 class RoleController extends Controller
 {
     /**
-     * Show the form for creating a database-backed role.
-     */
-    public function create()
-    {
-        $this->ensureSuperAdmin();
-
-        return view('backend.roles.create', [
-            'modules' => $this->modules(),
-        ]);
-    }
-
-    /**
      * Store a new role and its default permissions.
      */
     public function store(Request $request)

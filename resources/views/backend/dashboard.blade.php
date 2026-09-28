@@ -13,16 +13,6 @@
                 <h2 class="mt-1 text-2xl font-bold">Welcome back, {{ auth()->user()->name }}!</h2>
                 <p class="mt-1 text-sm text-gray-300">Signed in as {{ auth()->user()->email }} — {{ auth()->user()->role }} — latest updates at top.</p>
             </div>
-            <div class="flex shrink-0 gap-2">
-                <a href="{{ url('/') }}"
-                   class="inline-flex items-center justify-center gap-2 h-10 rounded-xl bg-white px-4 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100">
-                    View Website
-                </a>
-                <a href="{{ route('profile.edit') }}"
-                   class="inline-flex items-center justify-center gap-2 h-10 rounded-xl border border-white/20 bg-white/10 px-4 text-sm font-semibold text-white hover:bg-white/20">
-                    My Profile
-                </a>
-            </div>
         </div>
     </div>
 

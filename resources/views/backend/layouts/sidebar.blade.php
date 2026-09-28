@@ -8,6 +8,8 @@
 
     <title>@yield('title', 'Dashboard') — CMS</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('images/cms-logo.png') }}">
+
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
@@ -403,8 +405,8 @@
                 hint.textContent = 'Enter the full name.';
                 hint.className = 'mt-1.5 text-xs ' + (touched ? 'font-medium text-red-600' : 'text-gray-400');
             } else {
-                hint.textContent = 'Looks good.';
-                hint.className = 'mt-1.5 text-xs font-medium text-green-600';
+                hint.textContent = '';
+                hint.className = 'mt-1.5 text-xs text-gray-400';
             }
         }
 
@@ -416,12 +418,21 @@
             }
             const value = input.value.trim();
             const touched = input.dataset.touched === 'true';
+            let taken = [];
+            try {
+                taken = JSON.parse(input.dataset.takenEmails || '[]').map(e => String(e).toLowerCase());
+            } catch (e) {
+                taken = [];
+            }
             if (value === '') {
                 hint.textContent = 'Enter a valid email address.';
                 hint.className = 'mt-1.5 text-xs ' + (touched ? 'font-medium text-red-600' : 'text-gray-400');
-            } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-                hint.textContent = 'Email looks good.';
-                hint.className = 'mt-1.5 text-xs font-medium text-green-600';
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                hint.textContent = 'Enter a valid email address.';
+                hint.className = 'mt-1.5 text-xs font-medium text-red-600';
+            } else if (taken.includes(value.toLowerCase())) {
+                hint.textContent = 'This email is already in use.';
+                hint.className = 'mt-1.5 text-xs font-medium text-red-600';
             } else {
                 hint.textContent = 'Enter a valid email address.';
                 hint.className = 'mt-1.5 text-xs font-medium text-red-600';

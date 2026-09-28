@@ -54,9 +54,6 @@ class RoleManagementTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($admin)->get(route('roles.create'))
-            ->assertForbidden()
-            ->assertSee('You are not allowed to create roles.');
         $this->actingAs($admin)->post(route('roles.store'), [
             'name' => 'Unauthorized Role',
             'is_active' => '1',
