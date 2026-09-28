@@ -42,30 +42,35 @@
                 <div class="p-4 space-y-5 sm:p-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Full Name *</label>
-                        <input type="text" name="name" required maxlength="255" value="{{ old('name') }}" placeholder="e.g. Maria Santos" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <input type="text" name="name" required maxlength="255" data-validate="name" value="{{ old('name') }}" placeholder="e.g. Maria Santos" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <p data-hint="name" class="mt-1.5 text-xs text-gray-400">Enter the full name.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Email Address *</label>
-                        <input type="email" name="email" required maxlength="255" value="{{ old('email') }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <input type="email" name="email" required maxlength="255" data-validate="email" value="{{ old('email') }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400">Enter a valid email address.</p>
                     </div>
                     @include('backend.partials.account-contact')
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Password *</label>
+                        <p class="mb-2 text-xs text-gray-500">Create a password with at least 8 characters. Use a mix of letters, numbers, and symbols for better security.</p>
                         <div class="relative">
-                            <input type="password" name="password" required minlength="8" placeholder="Enter password" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <input type="password" name="password" required minlength="8" data-password-input data-optional="0" placeholder="Enter password" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 pr-11 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <button type="button" onclick="togglePasswordVisibility(this)" aria-label="Show password" title="Show password" aria-pressed="false" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-90">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                             </button>
                         </div>
+                        <p data-password-hint class="mt-1.5 text-xs text-gray-400">At least 8 characters required.</p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Confirm Password *</label>
                         <div class="relative">
-                            <input type="password" name="password_confirmation" required placeholder="Confirm password" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                            <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <input type="password" name="password_confirmation" required data-password-confirm-input placeholder="Confirm password" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 pr-11 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <button type="button" onclick="togglePasswordVisibility(this)" aria-label="Show password" title="Show password" aria-pressed="false" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-90">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                             </button>
                         </div>
+                        <p data-password-confirm-hint class="mt-1.5 text-xs text-gray-400">Re-enter the password exactly as above.</p>
                     </div>
 
                     <div class="mt-4 border border-gray-200 rounded-xl bg-red-50/30 p-4 flex items-center justify-between">
@@ -97,7 +102,12 @@
 
                     {{-- Role Select --}}
                     <div id="role-select-fields">
-                        <label class="block text-sm font-semibold text-gray-900 mb-1.5" for="role">Select Role *</label>
+                        <div class="mb-1.5 flex items-center justify-between gap-2">
+                            <label class="block text-sm font-semibold text-gray-900" for="role">Select Role *</label>
+                            @if (auth()->user()?->isSuperAdmin())
+                                <button id="delete-role-button" type="button" onclick="openRoleDialog('delete')" hidden class="shrink-0 text-xs font-semibold text-red-700 hover:text-red-800 hover:underline disabled:opacity-50">Delete selected role</button>
+                            @endif
+                        </div>
                         <select id="role" name="role" onchange="handleRoleSelection(event)" required data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="{{ old('permissions') !== null ? '1' : '0' }}" class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="">Select Role</option>
                             @foreach($roles as $role)
@@ -105,7 +115,6 @@
                             @endforeach
                         </select>
                         @if (auth()->user()?->isSuperAdmin())
-                            <button id="delete-role-button" type="button" onclick="openRoleDialog('delete')" hidden class="mt-2 text-sm font-semibold text-red-700 disabled:opacity-50">Delete selected role</button>
                             <script>handleRoleSelection();</script>
                         @endif
                         <p class="mt-1.5 text-xs text-gray-400">Choosing a role fills the permissions below. You can still adjust individual permissions.</p>

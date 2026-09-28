@@ -22,7 +22,7 @@
             <form method="GET" action="{{ route('contacts.index') }}" class="flex flex-col gap-2 sm:flex-row" data-turbo="false">
                 <label for="contact-search" class="sr-only">Search messages</label><input id="contact-search" type="search" name="q" value="{{ $search }}" placeholder="Search messages..."
                        class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                <label for="contact-status" class="sr-only">Message status</label><select id="contact-status" name="status" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <label for="contact-status" class="sr-only">Message status</label><select id="contact-status" name="status" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="">All statuses</option>
                     <option value="unread" @selected($status === 'unread')>Unread</option>
                     <option value="read" @selected($status === 'read')>Read</option>

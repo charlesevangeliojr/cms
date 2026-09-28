@@ -7,6 +7,7 @@
     }
 @endphp
 <div id="notification-data" hidden data-notifications='@json($notifications)'></div>
+<div id="toast-container" aria-live="polite" class="pointer-events-none fixed inset-x-0 top-4 z-[100] flex flex-col items-center gap-2 px-4"></div>
 <dialog id="notification-modal" aria-labelledby="notification-title" aria-describedby="notification-message" class="w-[calc(100%-2rem)] max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl shadow-slate-950/20 backdrop:bg-slate-950/55 backdrop:backdrop-blur-sm">
     <div class="relative px-6 py-8 text-center sm:px-8">
         <div id="notification-icon" aria-hidden="true" class="mx-auto flex h-16 w-16 items-center justify-center rounded-full ring-8 text-3xl font-bold"></div>
@@ -18,23 +19,69 @@
         </div>
     </div>
 </dialog>
+<style>
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(-12px) scale(.97); }
+    to { opacity: 1; transform: none; }
+}
+.toast-enter { animation: toast-in .25s ease; }
+.toast-leave { opacity: 0; transform: translateY(-8px); transition: opacity .25s ease, transform .25s ease; }
+</style>
 <script>
 (function () {
     if (!window.cmsNotificationsInstalled) {
         window.cmsNotificationsInstalled = true;
         const queue = [];
         let current = null;
+        const toastDurations = { success: 4000, info: 4000, error: 6000 };
+        const toastStyles = {
+            success: { icon: '\u2713', iconClass: 'bg-emerald-100 text-emerald-600', barClass: 'bg-emerald-500' },
+            error: { icon: '!', iconClass: 'bg-rose-100 text-rose-600', barClass: 'bg-rose-500' },
+            info: { icon: 'i', iconClass: 'bg-sky-100 text-sky-600', barClass: 'bg-sky-500' }
+        };
         const appearances = {
-            success: { title: 'Success', icon: '\u2713', iconClass: 'bg-emerald-100 text-emerald-600 ring-emerald-50', titleClass: 'text-emerald-950', buttonClass: 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-200' },
-            error: { title: 'Something needs attention', icon: '!', iconClass: 'bg-rose-100 text-rose-600 ring-rose-50', titleClass: 'text-rose-950', buttonClass: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-200' },
-            info: { title: 'Notice', icon: 'i', iconClass: 'bg-sky-100 text-sky-600 ring-sky-50', titleClass: 'text-sky-950', buttonClass: 'bg-sky-600 hover:bg-sky-700 focus:ring-sky-200' },
             delete: { title: 'Delete this item?', icon: '!', iconClass: 'bg-rose-100 text-rose-600 ring-rose-50', titleClass: 'text-rose-950', buttonClass: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-200' }
         };
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const style = toastStyles[type] || toastStyles.info;
+            const toast = document.createElement('div');
+            toast.setAttribute('role', 'status');
+            toast.className = 'toast-enter pointer-events-auto relative flex w-full max-w-md cursor-pointer items-start gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-3 pb-4 shadow-xl shadow-slate-950/10';
+            const icon = document.createElement('span');
+            icon.setAttribute('aria-hidden', 'true');
+            icon.className = `flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${style.iconClass}`;
+            icon.textContent = style.icon;
+            const text = document.createElement('p');
+            text.className = 'min-w-0 flex-1 whitespace-pre-line break-words pt-1 text-sm font-medium text-slate-800';
+            text.textContent = message;
+            toast.append(icon, text);
+            const duration = toastDurations[type] || 4000;
+            const bar = document.createElement('span');
+            bar.setAttribute('aria-hidden', 'true');
+            bar.className = `absolute bottom-0 left-0 h-1 ${style.barClass}`;
+            bar.style.width = '100%';
+            toast.append(bar);
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                bar.style.transition = `width ${duration}ms linear`;
+                bar.style.width = '0%';
+            }));
+            const timer = setTimeout(dismiss, duration);
+            function dismiss() {
+                clearTimeout(timer);
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+                setTimeout(() => toast.remove(), 250);
+            }
+            toast.addEventListener('click', dismiss);
+            container.appendChild(toast);
+        }
         function advance() {
             const dialog = document.getElementById('notification-modal');
             if (current || !queue.length || !dialog) return;
             current = queue.shift();
-            const appearance = appearances[current.confirm ? 'delete' : current.type] || appearances.info;
+            const appearance = appearances.delete;
             const icon = document.getElementById('notification-icon');
             const title = document.getElementById('notification-title');
             const confirm = document.getElementById('notification-confirm');
@@ -43,12 +90,11 @@
             title.textContent = appearance.title;
             title.className = `mt-6 text-xl font-bold tracking-tight ${appearance.titleClass}`;
             document.getElementById('notification-message').textContent = current.message;
-            const cancel = document.getElementById('notification-cancel');
-            cancel.hidden = !current.confirm;
-            confirm.textContent = current.confirm ? 'Delete' : 'OK';
+            document.getElementById('notification-cancel').hidden = false;
+            confirm.textContent = 'Delete';
             confirm.className = `inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition focus:outline-none focus:ring-4 ${appearance.buttonClass}`;
             dialog.showModal();
-            (current.confirm ? cancel : confirm).focus();
+            document.getElementById('notification-cancel').focus();
         }
         function finish(accepted) {
             if (!current) return;
@@ -58,10 +104,16 @@
             pending.resolve(accepted);
             advance();
         }
-        window.showNotification = (message, type = 'info', confirm = false) => new Promise(resolve => {
-            queue.push({message: String(message), type, confirm, resolve});
-            advance();
-        });
+        window.showNotification = (message, type = 'info', confirm = false) => {
+            if (!confirm) {
+                showToast(String(message), type);
+                return Promise.resolve(true);
+            }
+            return new Promise(resolve => {
+                queue.push({message: String(message), type, confirm, resolve});
+                advance();
+            });
+        };
         document.addEventListener('click', event => {
             if (event.target.closest('#notification-confirm')) finish(true);
             if (event.target.closest('#notification-cancel')) finish(false);

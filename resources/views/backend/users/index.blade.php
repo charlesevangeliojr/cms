@@ -33,14 +33,13 @@ $roleBadges = [
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         @if ($users->count())
             <div class="overflow-x-auto">
-                <table class="admin-banner-table min-w-[860px] w-full text-left text-sm">
+                <table class="admin-banner-table min-w-[620px] w-full table-fixed text-left text-sm">
                     <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
                         <tr>
-                            <th class="px-6 py-3 font-semibold whitespace-nowrap">User</th>
-                            <th class="px-6 py-3 font-semibold whitespace-nowrap">Role</th>
-                            <th class="px-6 py-3 font-semibold whitespace-nowrap">Status</th>
-                            <th class="px-6 py-3 font-semibold whitespace-nowrap text-right">Joined</th>
-                            <th class="px-6 py-3 font-semibold whitespace-nowrap text-right">Actions</th>
+                            <th class="w-1/4 px-6 py-3 font-semibold whitespace-nowrap">User</th>
+                            <th class="w-1/4 px-6 py-3 font-semibold whitespace-nowrap">Role</th>
+                            <th class="w-1/4 px-6 py-3 font-semibold whitespace-nowrap">Status</th>
+                            <th class="w-1/4 px-6 py-3 font-semibold whitespace-nowrap text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white">
@@ -79,7 +78,6 @@ $roleBadges = [
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm text-gray-500">Joined {{ $user->created_at?->format('M j, Y') }}</td>
                                 <td class="px-6 py-4 align-middle text-right">
                                     <div class="flex items-center justify-end gap-2 flex-nowrap">
                                         @if (auth()->user()?->canAccess('users', 'edit'))

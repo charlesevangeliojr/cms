@@ -8,11 +8,10 @@
     </div>
     <p class="mt-2 text-xs text-gray-500">A role is a reusable set of permissions, such as Editor or Content Manager.</p>
     @if (auth()->user()?->isSuperAdmin())
-        <div id="role-create-fields" hidden class="mt-4 space-y-3">
+        <div id="role-create-fields" hidden data-create-url="{{ route('roles.store') }}" class="mt-4 space-y-3">
             <label for="new-role-name" class="block text-sm font-semibold">New Role Name *</label>
-            <input id="new-role-name" type="text" maxlength="255" placeholder="e.g. Content Editor" class="w-full rounded-xl border border-gray-300 px-4 py-2.5" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('create-role-save').click(); }">
-            <p class="text-xs text-gray-500">Choose the default access in the Module Permissions table below, then create the role. Your account details stay here.</p>
-            <button id="create-role-save" type="button" onclick="saveRoleDialog(this)" data-create-url="{{ route('roles.store') }}" class="rounded-xl bg-indigo-900 px-4 py-2 text-sm font-semibold text-white">Create and select role</button>
+            <input id="new-role-name" type="text" maxlength="255" placeholder="e.g. Content Editor" class="w-full rounded-xl border border-gray-300 px-4 py-2.5">
+            <p id="role-name-hint" class="text-xs text-gray-400"></p>
             <p id="role-create-error" role="alert" class="text-sm text-red-700"></p>
         </div>
         <p id="role-status" role="status" aria-live="polite" class="mt-2 text-sm text-gray-700"></p>
@@ -57,17 +56,94 @@ function setRoleMode(creating) {
     panel.hidden = !creating;
     document.getElementById('role-select-fields').hidden = creating;
     select.required = !creating;
-    document.getElementById('user-form-save').disabled = creating;
     ['existing-role-tab', 'create-role-tab'].forEach((id, i) => {
         const tab = document.getElementById(id);
+        if (!tab) return;
         const active = creating === (i === 1);
         tab.setAttribute('aria-pressed', String(active));
         tab.style.background = active ? '#29264f' : 'transparent';
         tab.style.color = active ? 'white' : '#4b5563';
     });
-    if (creating) document.getElementById('new-role-name').focus();
+    if (creating) {
+        checkRoleNameAvailability();
+        document.getElementById('new-role-name').focus();
+    }
     handleRoleSelection();
-}function openRoleDialog(mode) {
+}
+function checkRoleNameAvailability() {
+    const nameInput = document.getElementById('new-role-name');
+    const hint = document.getElementById('role-name-hint');
+    const select = document.getElementById('role');
+    if (!nameInput || !hint || !select) return false;
+    const value = nameInput.value.trim();
+    if (value === '') {
+        hint.textContent = '';
+        hint.className = 'text-xs text-gray-400';
+        return false;
+    }
+    const taken = Array.from(select.options)
+        .map(option => option.value.trim().toLowerCase())
+        .includes(value.toLowerCase());
+    if (taken) {
+        hint.textContent = 'This role already exists.';
+        hint.className = 'text-xs font-medium text-red-600';
+        return false;
+    }
+    hint.textContent = 'Role name is available.';
+    hint.className = 'text-xs font-medium text-green-600';
+    return true;
+}
+async function createRoleFromForm(form) {
+    const panel = document.getElementById('role-create-fields');
+    const nameInput = document.getElementById('new-role-name');
+    const error = document.getElementById('role-create-error');
+    const saveButton = document.getElementById('user-form-save');
+    if (!panel || !nameInput || !error) return false;
+    error.textContent = '';
+    if (!checkRoleNameAvailability()) {
+        if (nameInput.value.trim() === '') {
+            error.textContent = 'Enter a role name, for example Content Editor.';
+        }
+        nameInput.focus();
+        return false;
+    }
+    const payload = new FormData();
+    payload.append('_token', form.querySelector('[name="_token"]').value);
+    payload.append('name', nameInput.value.trim());
+    payload.append('is_active', '1');
+    form.querySelectorAll('.perm-check:checked').forEach(box => payload.append(box.name, '1'));
+    const label = saveButton.textContent;
+    saveButton.disabled = true;
+    saveButton.textContent = 'Creating role...';
+    try {
+        const response = await fetch(panel.dataset.createUrl, { method: 'POST', body: payload, headers: { Accept: 'application/json' } });
+        const data = await response.json();
+        if (!response.ok) {
+            error.textContent = Object.values(data.errors || {}).flat().join(' ') || data.message || 'Unable to create the role.';
+            return false;
+        }
+        const select = document.getElementById('role');
+        const defaults = JSON.parse(select.dataset.roleDefaults || '{}');
+        defaults[data.role.name] = data.role.permissions;
+        select.add(new Option(data.role.name, data.role.name));
+        select.value = data.role.name;
+        select.dataset.roleDefaults = JSON.stringify(defaults);
+        nameInput.value = '';
+        panel.savedPermissions = null;
+        setRoleMode(false);
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        document.getElementById('role-status').textContent = 'Role created and selected.';
+        return true;
+    } catch (failure) {
+        error.textContent = 'Unable to create the role. Check your connection before trying again.';
+        return false;
+    } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = label;
+        handleRoleSelection();
+    }
+}
+document.getElementById('new-role-name')?.addEventListener('input', checkRoleNameAvailability);function openRoleDialog(mode) {
     const dialog = document.getElementById('role-dialog');
     const select = document.getElementById('role');
     const status = document.getElementById('role-status');

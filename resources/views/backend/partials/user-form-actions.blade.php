@@ -8,11 +8,22 @@
 <script>
 (function () {
     const form = document.getElementById('user-account-form');
-    form.addEventListener('submit', event => {
+    form.addEventListener('submit', async event => {
         const roleEditor = document.getElementById('role-create-fields');
-        if (roleEditor && !roleEditor.hidden) {
+        if (roleEditor && !roleEditor.hidden && !form.dataset.roleSubmitting) {
             event.preventDefault();
-            document.getElementById('role-create-error').textContent = 'Create the role first, or choose Select Existing Role before saving the user.';
+            if (typeof createRoleFromForm !== 'function') {
+                document.getElementById('role-create-error').textContent = 'Create the role first, or choose Select Existing Role before saving the user.';
+                return;
+            }
+            form.dataset.roleSubmitting = 'true';
+            try {
+                if (await createRoleFromForm(form)) {
+                    form.submit();
+                }
+            } finally {
+                delete form.dataset.roleSubmitting;
+            }
         }
     });
     const password = form.querySelector('[name="password"]');

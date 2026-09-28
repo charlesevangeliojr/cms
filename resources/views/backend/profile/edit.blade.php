@@ -101,25 +101,39 @@
                 <div class="p-6 space-y-5 flex flex-col flex-1">
                     <div>
                         <label for="name" class="mb-1.5 block text-sm font-semibold text-gray-900">Full Name *</label>
-                        <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required maxlength="255"
+                        <input id="name" name="name" type="text" value="{{ old('name', $user->name) }}" required maxlength="255" data-validate="name"
                                class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <p data-hint="name" class="mt-1.5 text-xs text-gray-400">Enter the full name.</p>
                     </div>
                     <div>
                         <label for="email" class="mb-1.5 block text-sm font-semibold text-gray-900">Email Address *</label>
-                        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required maxlength="255"
+                        <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required maxlength="255" data-validate="email"
                                class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400">Enter a valid email address.</p>
                     </div>
                     @include('backend.partials.account-contact')
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label for="password" class="mb-1.5 block text-sm font-semibold text-gray-900">New Password <span class="font-normal text-gray-400">(leave blank to keep)</span></label>
-                            <input id="password" name="password" type="password" placeholder="••••••••"
-                                   class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <div class="relative">
+                                <input id="password" name="password" type="password" data-password-input data-optional="1" placeholder="••••••••"
+                                       class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 pr-11 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <button type="button" onclick="togglePasswordVisibility(this)" aria-label="Show password" title="Show password" aria-pressed="false" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-90">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                                </button>
+                            </div>
+                            <p data-password-hint class="mt-1.5 text-xs text-gray-400">Leave blank to keep the current password.</p>
                         </div>
                         <div>
                             <label for="password_confirmation" class="mb-1.5 block text-sm font-semibold text-gray-900">Confirm Password</label>
-                            <input id="password_confirmation" name="password_confirmation" type="password" placeholder="••••••••"
-                                   class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            <div class="relative">
+                                <input id="password_confirmation" name="password_confirmation" type="password" data-password-confirm-input placeholder="••••••••"
+                                       class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 pr-11 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <button type="button" onclick="togglePasswordVisibility(this)" aria-label="Show password" title="Show password" aria-pressed="false" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-transform duration-200 hover:scale-110 active:scale-90">
+                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                                </button>
+                            </div>
+                            <p data-password-confirm-hint class="mt-1.5 text-xs text-gray-400"></p>
                         </div>
                     </div>
                     <div class="flex justify-end gap-3 pt-2 mt-auto">

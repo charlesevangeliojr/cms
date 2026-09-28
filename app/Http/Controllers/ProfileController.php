@@ -26,7 +26,8 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'contact' => ['nullable', 'string', 'max:20'],
+            'contact' => ['nullable', 'string', 'max:20', Rule::when($request->filled('contact_country'), ['regex:/^\\d{1,10}$/'])],
+            'contact_country' => ['nullable', 'string', 'max:5'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'remove_avatar' => ['nullable', 'boolean'],
@@ -35,6 +36,7 @@ class ProfileController extends Controller
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->contact = $validated['contact'] ?? null;
+        $user->contact_country = $validated['contact_country'] ?? null;
 
         if ($request->boolean('remove_avatar') && $user->avatar_path) {
             Storage::disk('avatars')->delete($user->avatar_path);

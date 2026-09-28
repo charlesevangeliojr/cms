@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'role',
         'contact',
+        'contact_country',
         'avatar_path',
         'is_active',
         'is_protected',

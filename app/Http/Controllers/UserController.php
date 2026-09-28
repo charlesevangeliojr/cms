@@ -47,7 +47,8 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'string', $this->activeRoleRule()],
-            'contact' => ['nullable', 'string', 'max:20'],
+            'contact' => ['nullable', 'string', 'max:20', Rule::when($request->filled('contact_country'), ['regex:/^\\d{1,10}$/'])],
+            'contact_country' => ['nullable', 'string', 'max:5'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['array'],
             'permissions.*.*' => ['boolean'],
@@ -61,6 +62,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'contact' => $validated['contact'] ?? null,
+            'contact_country' => $validated['contact_country'] ?? null,
             'is_active' => $request->boolean('is_active'),
             'permissions' => $this->normalizePermissions($request),
         ]);
@@ -96,7 +98,8 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'role' => ['required', 'string', $this->activeRoleRule()],
-            'contact' => ['nullable', 'string', 'max:20'],
+            'contact' => ['nullable', 'string', 'max:20', Rule::when($request->filled('contact_country'), ['regex:/^\\d{1,10}$/'])],
+            'contact_country' => ['nullable', 'string', 'max:5'],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['array'],
             'permissions.*.*' => ['boolean'],
@@ -108,6 +111,7 @@ class UserController extends Controller
         $user->email = $validated['email'];
         $user->role = $validated['role'];
         $user->contact = $validated['contact'] ?? null;
+        $user->contact_country = $validated['contact_country'] ?? null;
         $user->is_active = $user->is_protected ? true : $request->boolean('is_active');
         $user->permissions = $this->normalizePermissions($request);
 
@@ -117,7 +121,7 @@ class UserController extends Controller
 
         $user->save();
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('users.edit', $user)->with('success', 'User updated successfully.');
     }
 
     /**

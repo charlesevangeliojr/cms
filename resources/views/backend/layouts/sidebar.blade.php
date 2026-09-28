@@ -39,6 +39,12 @@
         .admin-banner-table th, .admin-banner-table td { vertical-align: middle; }
         .admin-banner-table thead th { white-space: nowrap; }
         /* Keep tables horizontally scrollable on small screens instead of stacking */
+        @keyframes password-eye-pop {
+            0% { transform: scale(.5); opacity: .4; }
+            60% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .password-eye-pop { animation: password-eye-pop .25s ease; }
         @media (prefers-reduced-motion: reduce) {
             .admin-workspace *, .admin-workspace *::before, .admin-workspace *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
         }
@@ -60,7 +66,6 @@
                                         <div class="min-w-0 flex-1">
                         <h1 class="truncate text-lg font-semibold sm:text-xl">@yield('title', 'Dashboard')</h1>
                     </div>
-                    <a href="{{ url('/') }}" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center justify-center gap-2 h-10 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">View site</a>
                     @php($navUser = auth()->user())
                     @if($navUser)
                     <div class="relative shrink-0 hidden md:block">
@@ -313,12 +318,265 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initializeRolePermissionForms();
-
+            initializePasswordValidation();
+            initializeCountryDropdowns();
+            initializeContactNumberInputs();
+            initializeEmailValidation();
         });
         document.addEventListener('turbo:load', () => {
             initializeRolePermissionForms();
-
+            initializePasswordValidation();
+            initializeCountryDropdowns();
+            initializeContactNumberInputs();
+            initializeEmailValidation();
         });
+
+        function initializeContactNumberInputs() {
+            document.querySelectorAll('#contact[inputmode="numeric"]').forEach((input) => {
+                if (input.dataset.contactNumberInitialized === 'true') return;
+                input.dataset.contactNumberInitialized = 'true';
+                input.addEventListener('input', () => {
+                    input.value = input.value.replace(/\D/g, '').slice(0, 10);
+                });
+            });
+        }
+
+        function closeCountryDropdown(dropdown) {
+            const list = dropdown.querySelector('[data-country-list]');
+            const button = dropdown.querySelector('[data-country-button]');
+            const chevron = dropdown.querySelector('[data-country-chevron]');
+            if (!list || list.classList.contains('hidden')) {
+                return;
+            }
+            list.classList.add('hidden');
+            button?.setAttribute('aria-expanded', 'false');
+            chevron?.classList.remove('rotate-180');
+        }
+
+        function selectCountryCode(dropdown, code, iso) {
+            const input = dropdown.querySelector('[data-country-input]');
+            const label = dropdown.querySelector('[data-country-code]');
+            const flag = dropdown.querySelector('[data-country-flag]');
+            if (input) input.value = code;
+            if (label) label.textContent = code;
+            if (flag) {
+                if (iso) {
+                    flag.src = 'https://flagcdn.com/w40/' + iso + '.png';
+                    flag.style.display = '';
+                } else {
+                    flag.style.display = 'none';
+                }
+            }
+            dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+                const active = option.dataset.code === code && (!iso || option.dataset.iso === iso);
+                option.classList.toggle('bg-indigo-50', active);
+                option.classList.toggle('font-semibold', active);
+                option.classList.toggle('text-indigo-700', active);
+                option.querySelector('[data-country-check]')?.classList.toggle('hidden', !active);
+                option.closest('li')?.setAttribute('aria-selected', String(active));
+            });
+            const search = dropdown.querySelector('[data-country-search]');
+            if (search) {
+                search.value = '';
+                filterCountryOptions(dropdown, '');
+            }
+            closeCountryDropdown(dropdown);
+        }
+
+        function filterCountryOptions(dropdown, term) {
+            const query = term.trim().toLowerCase();
+            dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+                const match = query === '' || (option.dataset.name || '').includes(query);
+                option.closest('li')?.classList.toggle('hidden', !match);
+            });
+        }
+
+        function updateNameHint(input) {
+            const form = input.closest('form');
+            const hint = form?.querySelector('[data-hint="name"]');
+            if (!hint) {
+                return;
+            }
+            const value = input.value.trim();
+            const touched = input.dataset.touched === 'true';
+            if (value === '') {
+                hint.textContent = 'Enter the full name.';
+                hint.className = 'mt-1.5 text-xs ' + (touched ? 'font-medium text-red-600' : 'text-gray-400');
+            } else {
+                hint.textContent = 'Looks good.';
+                hint.className = 'mt-1.5 text-xs font-medium text-green-600';
+            }
+        }
+
+        function updateEmailHint(input) {
+            const form = input.closest('form');
+            const hint = form?.querySelector('[data-hint="email"]');
+            if (!hint) {
+                return;
+            }
+            const value = input.value.trim();
+            const touched = input.dataset.touched === 'true';
+            if (value === '') {
+                hint.textContent = 'Enter a valid email address.';
+                hint.className = 'mt-1.5 text-xs ' + (touched ? 'font-medium text-red-600' : 'text-gray-400');
+            } else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                hint.textContent = 'Email looks good.';
+                hint.className = 'mt-1.5 text-xs font-medium text-green-600';
+            } else {
+                hint.textContent = 'Enter a valid email address.';
+                hint.className = 'mt-1.5 text-xs font-medium text-red-600';
+            }
+        }
+
+        function initializeEmailValidation() {
+            document.querySelectorAll('input[data-validate="email"]').forEach((input) => {
+                if (input.dataset.emailValidationInitialized === 'true') {
+                    updateEmailHint(input);
+                    return;
+                }
+                input.dataset.emailValidationInitialized = 'true';
+                input.addEventListener('input', () => {
+                    input.dataset.touched = 'true';
+                    updateEmailHint(input);
+                });
+                updateEmailHint(input);
+            });
+            document.querySelectorAll('input[data-validate="name"]').forEach((input) => {
+                if (input.dataset.nameValidationInitialized === 'true') {
+                    updateNameHint(input);
+                    return;
+                }
+                input.dataset.nameValidationInitialized = 'true';
+                input.addEventListener('input', () => {
+                    input.dataset.touched = 'true';
+                    updateNameHint(input);
+                });
+                updateNameHint(input);
+            });
+        }
+
+        function initializeCountryDropdowns() {            if (document.documentElement.dataset.countryGlobalBound !== 'true') {
+                document.documentElement.dataset.countryGlobalBound = 'true';
+                document.addEventListener('click', (e) => {
+                    document.querySelectorAll('[data-country-dropdown]').forEach((dropdown) => {
+                        if (!dropdown.contains(e.target)) closeCountryDropdown(dropdown);
+                    });
+                });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') document.querySelectorAll('[data-country-dropdown]').forEach(closeCountryDropdown);
+                });
+            }
+            document.querySelectorAll('[data-country-dropdown]').forEach((dropdown) => {
+                const button = dropdown.querySelector('[data-country-button]');
+                const list = dropdown.querySelector('[data-country-list]');
+                const chevron = dropdown.querySelector('[data-country-chevron]');
+                if (!button || !list) {
+                    return;
+                }
+                if (dropdown.dataset.countryInitialized !== 'true') {
+                    dropdown.dataset.countryInitialized = 'true';
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const willOpen = list.classList.contains('hidden');
+                        document.querySelectorAll('[data-country-dropdown]').forEach((other) => {
+                            if (other !== dropdown) closeCountryDropdown(other);
+                        });
+                        list.classList.toggle('hidden', !willOpen);
+                        button.setAttribute('aria-expanded', String(willOpen));
+                        chevron?.classList.toggle('rotate-180', willOpen);
+                    });
+                    dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+                        option.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            selectCountryCode(dropdown, option.dataset.code, option.dataset.iso);
+                        });
+                    });
+                    dropdown.querySelector('[data-country-search]')?.addEventListener('input', (e) => {
+                        filterCountryOptions(dropdown, e.target.value);
+                    });
+                }
+                const input = dropdown.querySelector('[data-country-input]');
+                if (input) {
+                    const current = dropdown.querySelector(`[data-country-option][data-code="${CSS.escape(input.value)}"]`);
+                    selectCountryCode(dropdown, input.value, current?.dataset.iso);
+                }
+            });
+        }
+
+        function togglePasswordVisibility(button) {
+            const wrapper = button.closest('.relative');
+            const input = wrapper ? wrapper.querySelector('input[type="password"], input[type="text"]') : null;
+            if (!input) {
+                return;
+            }
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            button.setAttribute('title', show ? 'Hide password' : 'Show password');
+            button.setAttribute('aria-pressed', String(show));
+            button.classList.toggle('text-indigo-600', show);
+            button.classList.toggle('text-gray-400', !show);
+            const icon = button.querySelector('svg');
+            if (icon) {
+                icon.innerHTML = show
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 2.036 12.322C3.423 16.49 7.36 19.5 12 19.5c1.48 0 2.89-.322 4.15-.9M6.228 6.228A10.45 10.45 0 0 1 12 4.5c4.638 0 8.573 3.007 9.963 7.178a10.52 10.52 0 0 1-4.056 5.163M6.228 6.228 3 3m3.228 3.228 12.544 12.544M9.88 9.88a3 3 0 0 0 4.24 4.24" />'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />';
+                icon.classList.remove('password-eye-pop');
+                void icon.offsetWidth;
+                icon.classList.add('password-eye-pop');
+            }
+        }
+
+        function updatePasswordHints(form) {
+            const pw = form.querySelector('[data-password-input]');
+            const confirm = form.querySelector('[data-password-confirm-input]');
+            const hint = form.querySelector('[data-password-hint]');
+            const confirmHint = form.querySelector('[data-password-confirm-hint]');
+            if (!pw || !hint) {
+                return;
+            }
+            const optional = pw.dataset.optional === '1';
+            const len = pw.value.length;
+            if (len === 0) {
+                hint.textContent = optional ? 'Leave blank to keep the current password.' : 'Must be at least 8 characters.';
+                hint.className = 'mt-1.5 text-xs text-gray-400';
+            } else if (len < 8) {
+                hint.textContent = 'Too short — ' + len + '/8 characters minimum.';
+                hint.className = 'mt-1.5 text-xs font-medium text-red-600';
+            } else {
+                hint.textContent = 'Password length looks good.';
+                hint.className = 'mt-1.5 text-xs font-medium text-green-600';
+            }
+            if (confirm && confirmHint) {
+                if (confirm.value.length === 0) {
+                    confirmHint.textContent = '';
+                    confirmHint.className = 'mt-1.5 text-xs text-gray-400';
+                } else if (confirm.value === pw.value) {
+                    confirmHint.textContent = 'Passwords match.';
+                    confirmHint.className = 'mt-1.5 text-xs font-medium text-green-600';
+                } else {
+                    confirmHint.textContent = 'Passwords do not match.';
+                    confirmHint.className = 'mt-1.5 text-xs font-medium text-red-600';
+                }
+            }
+        }
+
+        function initializePasswordValidation() {            document.querySelectorAll('form').forEach((form) => {
+                const pw = form.querySelector('[data-password-input]');
+                const confirm = form.querySelector('[data-password-confirm-input]');
+                if (!pw && !confirm) {
+                    return;
+                }
+                updatePasswordHints(form);
+                if (form.dataset.passwordValidationInitialized === 'true') {
+                    return;
+                }
+                form.dataset.passwordValidationInitialized = 'true';
+                [pw, confirm].forEach((input) => {
+                    input?.addEventListener('input', () => updatePasswordHints(form));
+                });
+            });
+        }
     </script>
 </body>
 </html>
