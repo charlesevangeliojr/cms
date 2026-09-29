@@ -72,8 +72,11 @@ return new class extends Migration
                 continue;
             }
 
-            foreach ($pages->keys()->all() as $page) {
-                foreach ($privileges->keys()->all() as $action) {
+            // Insert in the same order as the role/privilege/page unique key:
+            // privilege first, then page. This keeps freshly generated IDs
+            // ascending when the table is viewed through that index.
+            foreach ($privileges->keys()->all() as $action) {
+                foreach ($pages->keys()->all() as $page) {
                     $rows[] = [
                         'role_id' => $roleId,
                         'privilege_id' => $privileges[$action],
