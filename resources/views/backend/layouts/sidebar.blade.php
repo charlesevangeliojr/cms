@@ -25,7 +25,11 @@
     <style>
         body { font-family: Figtree, sans-serif; }
         .admin-workspace { background: #f5f7fb; }
-        .admin-workspace main { max-width: 1440px; margin-inline: auto; }
+        /* Use the complete area beside the sidebar on wide screens. Individual
+           pages already provide their own responsive padding and card spacing. */
+        .admin-workspace main { width: 100%; max-width: none; margin-inline: 0; }
+        .admin-workspace main > .max-w-7xl,
+        .admin-workspace main > .max-w-4xl { max-width: none; }
         .admin-workspace :is(a, button, input, select, textarea):focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
         .admin-workspace main :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select) { min-height: 44px; }
         .admin-workspace main :is(input, select, textarea) { max-width: 100%; }
