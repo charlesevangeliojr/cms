@@ -61,9 +61,9 @@ return new class extends Migration
             ]);
         }
 
-        $pages = DB::table('pages')->pluck('id', 'slug');
-        $privileges = DB::table('privileges')->pluck('id', 'name');
-        $roles = DB::table('roles')->pluck('id', 'name');
+        $pages = DB::table('pages')->orderBy('id')->pluck('id', 'slug');
+        $privileges = DB::table('privileges')->orderBy('id')->pluck('id', 'name');
+        $roles = DB::table('roles')->orderBy('id')->pluck('id', 'name');
 
         $rows = [];
         foreach ($roles as $roleName => $roleId) {

@@ -42,7 +42,7 @@ class Role extends Model
 
     public function rolePrivileges(): HasMany
     {
-        return $this->hasMany(RolePrivilege::class);
+        return $this->hasMany(RolePrivilege::class)->orderBy('id');
     }
 
     public function getPermissionsAttribute(): array
@@ -66,8 +66,8 @@ class Role extends Model
 
     public function syncPermissions(array $permissions): void
     {
-        $pages = Page::query()->pluck('id', 'slug');
-        $privileges = Privilege::query()->pluck('id', 'name');
+        $pages = Page::query()->orderBy('id')->pluck('id', 'slug');
+        $privileges = Privilege::query()->orderBy('id')->pluck('id', 'name');
         $rows = [];
         foreach ($permissions as $page => $actions) {
             foreach ($actions as $action => $allowed) {

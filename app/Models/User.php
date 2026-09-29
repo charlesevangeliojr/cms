@@ -108,7 +108,7 @@ class User extends Authenticatable
 
     public function userPrivileges(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(UserPrivilege::class);
+        return $this->hasMany(UserPrivilege::class)->orderBy('id');
     }
 
     public function isSuperAdmin(): bool
@@ -167,8 +167,8 @@ class User extends Authenticatable
 
     public function syncPermissions(array $permissions): void
     {
-        $pages = Page::query()->pluck('id', 'slug');
-        $privileges = Privilege::query()->pluck('id', 'name');
+        $pages = Page::query()->orderBy('id')->pluck('id', 'slug');
+        $privileges = Privilege::query()->orderBy('id')->pluck('id', 'name');
         $rows = [];
         foreach ($permissions as $page => $actions) {
             foreach ($actions as $action => $allowed) {

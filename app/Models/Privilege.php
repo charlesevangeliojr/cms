@@ -11,11 +11,11 @@ class Privilege extends Model
 
     public function rolePrivileges(): HasMany
     {
-        return $this->hasMany(RolePrivilege::class);
+        return $this->hasMany(RolePrivilege::class)->orderBy('id');
     }
 
     public function userPrivileges(): HasMany
     {
-        return $this->hasMany(UserPrivilege::class);
+        return $this->hasMany(UserPrivilege::class)->orderBy('id');
     }
 }
