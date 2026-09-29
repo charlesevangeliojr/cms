@@ -184,7 +184,7 @@ Migrations are a squashed baseline: users (with role_id FK, contact,
 avatar, active/protected flags), roles (Super Admin seed), banners,
 contact messages, newsletter subscribers, pages/privileges with
 role/user grant tables, plus Laravel cache/jobs tables.
-config/cms.php is the page/privilege registry; the pages migration seeds
+config/cms.php is the page/privilege registry; PagesAndPrivilegesSeeder syncs
 from it and grants Super Admin full access.
 database/factories/ contains test data factories.
 database/seeders/DatabaseSeeder.php currently creates/resets a development admin

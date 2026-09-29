@@ -14,6 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Pages/privileges must exist before roles/users sync their
+        // permission matrices against the pages/privileges tables.
+        $this->call(PagesAndPrivilegesSeeder::class);
+
         // Protected default admin — must not be removable (see UserController::destroy is_protected check).
         $superAdminRole = Role::firstOrCreate(
             ['name' => 'Super Admin'],
