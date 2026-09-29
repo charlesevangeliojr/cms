@@ -61,8 +61,8 @@ $roleBadges = [
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 align-middle whitespace-nowrap">
-                                    <span class="inline-flex items-center justify-center h-7 rounded-full px-3 text-xs font-semibold whitespace-nowrap {{ $roleBadges[$user->role] ?? 'bg-gray-100 text-gray-600 border border-gray-200' }}">
-                                        {{ $user->role ?? '—' }}
+                                    <span class="inline-flex items-center justify-center h-7 rounded-full px-3 text-xs font-semibold whitespace-nowrap {{ $roleBadges[$user->role?->name] ?? 'bg-gray-100 text-gray-600 border border-gray-200' }}">
+                                        {{ $user->role?->name ?? '—' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 align-middle whitespace-nowrap">

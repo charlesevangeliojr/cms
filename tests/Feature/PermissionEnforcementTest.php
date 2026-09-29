@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Banner;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class PermissionEnforcementTest extends TestCase
     public function test_dashboard_is_hidden_and_forbidden_without_dashboard_view(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => false, 'add' => false, 'edit' => false, 'delete' => false],
@@ -37,7 +38,7 @@ class PermissionEnforcementTest extends TestCase
     public function test_banner_edit_denial_names_the_forbidden_action(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => false, 'add' => false, 'edit' => false, 'delete' => false],
@@ -59,12 +60,12 @@ class PermissionEnforcementTest extends TestCase
     public function test_unchecking_every_permission_is_stored_instead_of_using_role_defaults(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
         $target = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
@@ -72,7 +73,7 @@ class PermissionEnforcementTest extends TestCase
         $response = $this->actingAs($admin)->put(route('users.update', $target), [
             'name' => $target->name,
             'email' => $target->email,
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => '1',
         ]);
 
@@ -88,7 +89,7 @@ class PermissionEnforcementTest extends TestCase
         ];
 
         $this->assertSame(
-            ['dashboard' => $denied, 'banners' => $denied, 'users' => $denied, 'contacts' => $denied, 'newsletters' => $denied],
+            ['dashboard' => $denied, 'contacts' => $denied, 'newsletters' => $denied, 'banners' => $denied, 'users' => $denied],
             $target->permissions,
         );
         $this->assertFalse($target->canAccess('dashboard', 'view'));
@@ -97,7 +98,7 @@ class PermissionEnforcementTest extends TestCase
     public function test_login_redirects_to_first_permitted_module(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => false, 'add' => false, 'edit' => false, 'delete' => false],
@@ -118,7 +119,7 @@ class PermissionEnforcementTest extends TestCase
     public function test_login_rejects_a_user_without_any_module_access(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => false, 'add' => false, 'edit' => false, 'delete' => false],

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,7 +14,7 @@ class DashboardSystemStatusTest extends TestCase
     public function test_dashboard_shows_system_status_without_resource_usage(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);

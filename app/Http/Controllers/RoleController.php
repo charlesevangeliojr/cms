@@ -31,13 +31,13 @@ class RoleController extends Controller
         ]);
 
         if ($request->expectsJson()) {
-            return response()->json(['role' => $role->only(['name', 'permissions', 'is_active'])], 201);
+            return response()->json(['role' => $role->only(['id', 'name', 'permissions', 'is_active'])], 201);
         }
 
         return redirect()
             ->route('users.create')
             ->with('success', "Role {$role->name} created successfully.")
-            ->with('selected_role', $role->name);
+            ->with('selected_role', $role->id);
     }
 
     /**
@@ -69,7 +69,7 @@ class RoleController extends Controller
         $permissions = [];
 
         foreach ($this->modules() as $module) {
-            foreach (['view', 'add', 'edit', 'delete'] as $action) {
+            foreach (array_keys(config('cms.privileges', [])) as $action) {
                 $permissions[$module['key']][$action] = (bool) data_get(
                     $submitted,
                     "{$module['key']}.{$action}",
@@ -82,18 +82,18 @@ class RoleController extends Controller
     }
 
     /**
-     * Modules shared with the user permission matrix.
+     * Modules shared with the user permission matrix, from the cms page registry.
      *
      * @return list<array{key: string, name: string}>
      */
     private function modules(): array
     {
-        return [
-            ['key' => 'dashboard', 'name' => 'Dashboard'],
-            ['key' => 'banners', 'name' => 'Banner Management'],
-            ['key' => 'users', 'name' => 'User Management'],
-            ['key' => 'contacts', 'name' => 'Contact Us'],
-            ['key' => 'newsletters', 'name' => 'Newsletter'],
-        ];
+        $modules = [];
+
+        foreach (config('cms.pages', []) as $key => $page) {
+            $modules[] = ['key' => $key, 'name' => $page['name']];
+        }
+
+        return $modules;
     }
 }

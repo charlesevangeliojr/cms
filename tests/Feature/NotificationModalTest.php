@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\MessageBag;
@@ -15,7 +16,7 @@ class NotificationModalTest extends TestCase
     public function test_transient_notifications_use_shared_modals(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
@@ -35,8 +36,8 @@ class NotificationModalTest extends TestCase
 
     public function test_delete_forms_use_modal_confirmation_instead_of_browser_popups(): void
     {
-        $admin = User::factory()->create(['role' => 'Super Admin', 'is_active' => true, 'permissions' => User::fullAccessPermissions()]);
-        User::factory()->create(['role' => 'Super Admin']);
+        $admin = User::factory()->create(['role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id, 'is_active' => true, 'permissions' => User::fullAccessPermissions()]);
+        User::factory()->create(['role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id]);
         $this->actingAs($admin)->get(route('users.index'))->assertOk()
             ->assertSee('data-confirm=', false)
             ->assertSee('id="notification-cancel"', false)
@@ -52,7 +53,7 @@ class NotificationModalTest extends TestCase
     public function test_full_page_permission_error_does_not_use_a_toast(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => false, 'add' => false, 'edit' => false, 'delete' => false],

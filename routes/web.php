@@ -1,14 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BannerController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Frontend — public landing pages, NO login required.
@@ -29,53 +27,38 @@ Route::post('/admin/login', [AuthController::class, 'login'])->middleware('throt
 Route::post('/admin/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Admin (sidebar layout, login required + module permissions)
-Route::middleware(['auth', 'active', 'timeout'])->group(function () {
+Route::middleware(['auth', 'active', 'timeout'])->prefix('admin')->group(function () {
     // Profile — any authenticated user, no module permission required
-    Route::get('/admin/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/admin/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/admin/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
 
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])
+    Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('permission:dashboard,view')->name('dashboard');
-    Route::post('/admin/roles', [RoleController::class, 'store'])
-        ->name('roles.store');
-    Route::delete('/admin/roles/{role:name}', [RoleController::class, 'destroy'])->where('role', '.*')->name('roles.destroy');
-    Route::get('/admin/banners', [BannerController::class, 'index'])
-        ->middleware('permission:banners,view')->name('banners.index');
-    Route::get('/admin/banners/create', [BannerController::class, 'create'])
-        ->middleware('permission:banners,add')->name('banners.create');
-    Route::post('/admin/banners', [BannerController::class, 'store'])
-        ->middleware('permission:banners,add')->name('banners.store');
-    Route::get('/admin/banners/{banner}/edit', [BannerController::class, 'edit'])
-        ->middleware('permission:banners,edit')->name('banners.edit');
-    Route::put('/admin/banners/{banner}', [BannerController::class, 'update'])
-        ->middleware('permission:banners,edit')->name('banners.update');
-    Route::delete('/admin/banners/{banner}', [BannerController::class, 'destroy'])
-        ->middleware('permission:banners,delete')->name('banners.destroy');
-    Route::get('/admin/contacts', [ContactController::class, 'index'])
-        ->middleware('permission:contacts,view')->name('contacts.index');
-    Route::patch('/admin/contacts/{contact}', [ContactController::class, 'update'])
-        ->middleware('permission:contacts,edit')->name('contacts.update');
-    Route::delete('/admin/contacts/{contact}', [ContactController::class, 'destroy'])
-        ->middleware('permission:contacts,delete')->name('contacts.destroy');
-    Route::get('/admin/newsletters', [NewsletterController::class, 'index'])
-        ->middleware('permission:newsletters,view')->name('newsletters.index');
-    Route::patch('/admin/newsletters/{newsletter}', [NewsletterController::class, 'update'])
-        ->middleware('permission:newsletters,edit')->name('newsletters.update');
-    Route::delete('/admin/newsletters/{newsletter}', [NewsletterController::class, 'destroy'])
-        ->middleware('permission:newsletters,delete')->name('newsletters.destroy');
-    Route::get('/admin/users', [UserController::class, 'index'])
-        ->middleware('permission:users,view')->name('users.index');
-    Route::get('/admin/users/create', [UserController::class, 'create'])
-        ->middleware('permission:users,add')->name('users.create');
-    Route::post('/admin/users', [UserController::class, 'store'])
-        ->middleware('permission:users,add')->name('users.store');
-    Route::get('/admin/users/{user}/edit', [UserController::class, 'edit'])
-        ->middleware('permission:users,edit')->name('users.edit');
-    Route::put('/admin/users/{user}', [UserController::class, 'update'])
-        ->middleware('permission:users,edit')->name('users.update');
-    Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])
-        ->middleware('permission:users,delete')->name('users.destroy');
+
+    // Roles — Super Admin checks live in RoleController
+    Route::resource('roles', RoleController::class)->only(['store', 'destroy']);
+
+    // Admin CRUD from the cms page registry — resource name doubles
+    // as the permission module. Each action maps to its permission:
+    // view/add/edit/delete.
+    $actionPermission = [
+        'index' => 'view', 'create' => 'add', 'store' => 'add',
+        'edit' => 'edit', 'update' => 'edit', 'destroy' => 'delete',
+    ];
+
+    foreach (config('cms.pages', []) as $resource => $page) {
+        if (empty($page['controller']) || empty($page['actions'])) {
+            continue;
+        }
+        $grouped = [];
+        foreach ($page['actions'] as $action) {
+            $grouped[$actionPermission[$action]][] = $action;
+        }
+        foreach ($grouped as $permission => $only) {
+            Route::resource($resource, $page['controller'])->only($only)->middleware("permission:{$resource},{$permission}");
+        }
+    }
 });
 
 // Legacy URLs → admin URLs

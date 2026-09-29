@@ -72,7 +72,7 @@ Authenticated, active-account routes:
   PUT  /admin/profile            profile.update
   DELETE /admin/profile/avatar   profile.avatar.destroy
   POST /admin/roles              roles.store; controller requires Super Admin
-  DELETE /admin/roles/{role:name} roles.destroy; Super Admin; unused roles only
+  DELETE /admin/roles/{role}     roles.destroy; Super Admin; unused roles only
 
 For banners and users:
   GET    /admin/<module>              <module>.index; view
@@ -180,9 +180,12 @@ Do not commit uploads or allow script execution in these directories.
 resources/css and resources/js contain source assets; current layouts use CDNs.
 There is no checked-in package.json or required npm build workflow.
 
-Migrations define users, cache/jobs, account profile/protection/avatar fields,
-contact_country on users, roles/defaults, banners, contact messages and
-newsletter subscribers.
+Migrations are a squashed baseline: users (with role_id FK, contact,
+avatar, active/protected flags), roles (Super Admin seed), banners,
+contact messages, newsletter subscribers, pages/privileges with
+role/user grant tables, plus Laravel cache/jobs tables.
+config/cms.php is the page/privilege registry; the pages migration seeds
+from it and grants Super Admin full access.
 database/factories/ contains test data factories.
 database/seeders/DatabaseSeeder.php currently creates/resets a development admin
 with fixed credentials: development only; unsafe to run on production accounts.
@@ -197,8 +200,8 @@ tests/Unit/: isolated checks including system metric formatting.
 phpunit.xml uses an in-memory SQLite database for tests.
 Run commands and read known verification limits in README.md and docs/SECURITY.md.
 
-New module: add migration/model/controller, named and permission-protected routes,
-backend views, permission definitions and behavior tests. Add a disk for uploads.
+New module: follow docs/ADDING_A_PAGE.md (register in config/cms.php, add
+controller/views/routes via the registry, seed, test). Add a disk for uploads.
 New public page: add controller data/method, route, page and reusable sections;
 preserve the site/nav/page contract and explicitly pass any additional data.
 Update this guide when structure/routes change and PROJECT_STANDARDS.md when

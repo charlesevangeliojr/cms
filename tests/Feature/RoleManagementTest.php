@@ -50,7 +50,7 @@ class RoleManagementTest extends TestCase
     public function test_non_super_admin_cannot_create_roles(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
         ]);
 
@@ -80,7 +80,7 @@ class RoleManagementTest extends TestCase
             'name' => 'Super Admin', 'is_active' => true,
         ])->assertUnprocessable()->assertJsonValidationErrors('name');
 
-        $user = User::factory()->create(['role' => 'Content Manager', 'is_active' => true]);
+        $user = User::factory()->create(['role_id' => $this->contentManagerRole()->id, 'is_active' => true]);
         $this->actingAs($user)->postJson(route('roles.store'), [
             'name' => 'Unauthorized Inline Role', 'is_active' => true,
         ])->assertForbidden();
@@ -90,7 +90,7 @@ class RoleManagementTest extends TestCase
     public function test_super_admin_can_delete_an_unused_role(): void
     {
         $role = Role::create(['name' => 'Unused Editor', 'permissions' => [], 'is_active' => true]);
-        $this->actingAs($this->superAdmin())->deleteJson(route('roles.destroy', $role->name))->assertOk();
+        $this->actingAs($this->superAdmin())->deleteJson(route('roles.destroy', $role))->assertOk();
         $this->assertDatabaseMissing('roles', ['id' => $role->id]);
     }
 
@@ -98,18 +98,18 @@ class RoleManagementTest extends TestCase
     {
         $admin = $this->superAdmin();
         $role = Role::create(['name' => 'Assigned Editor', 'permissions' => [], 'is_active' => true]);
-        $user = User::factory()->create(['role' => $role->name, 'is_active' => false]);
-        $this->actingAs($admin)->deleteJson(route('roles.destroy', $role->name))->assertUnprocessable();
-        $this->deleteJson(route('roles.destroy', 'Super Admin'))->assertUnprocessable();
+        $user = User::factory()->create(['role_id' => $role->id, 'is_active' => false]);
+        $this->actingAs($admin)->deleteJson(route('roles.destroy', $role))->assertUnprocessable();
+        $this->deleteJson(route('roles.destroy', Role::where('name', 'Super Admin')->firstOrFail()->id))->assertUnprocessable();
         $this->assertDatabaseHas('roles', ['id' => $role->id]);
-        $this->assertSame($role->name, $user->fresh()->role);
+        $this->assertSame($role->id, $user->fresh()->role_id);
     }
 
     public function test_other_users_cannot_delete_roles(): void
     {
         $role = Role::create(['name' => 'Unused Editor', 'permissions' => [], 'is_active' => true]);
-        $user = User::factory()->create(['role' => $role->name, 'is_active' => true, 'permissions' => User::fullAccessPermissions()]);
-        $this->actingAs($user)->deleteJson(route('roles.destroy', $role->name))->assertForbidden();
+        $user = User::factory()->create(['role_id' => $role->id, 'is_active' => true, 'permissions' => User::fullAccessPermissions()]);
+        $this->actingAs($user)->deleteJson(route('roles.destroy', $role))->assertForbidden();
         $this->assertDatabaseHas('roles', ['id' => $role->id]);
     }
 
@@ -127,7 +127,7 @@ class RoleManagementTest extends TestCase
     private function superAdmin(): User
     {
         return User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
         ]);
     }

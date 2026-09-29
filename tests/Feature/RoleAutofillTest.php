@@ -14,7 +14,7 @@ class RoleAutofillTest extends TestCase
     public function test_create_form_exposes_database_role_defaults_to_the_browser(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
@@ -34,14 +34,14 @@ class RoleAutofillTest extends TestCase
             ->assertSee('initializeRolePermissionForms', false);
         $this->assertSame(
             ['view' => true, 'add' => false, 'edit' => false, 'delete' => false],
-            $response->viewData('roleDefaults')['Partial Access']['dashboard'],
+            $response->viewData('roleDefaults')[Role::where('name', 'Partial Access')->firstOrFail()->id]['dashboard'],
         );
     }
 
     public function test_custom_permissions_are_preserved_after_a_validation_error(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
@@ -51,7 +51,7 @@ class RoleAutofillTest extends TestCase
             'email' => 'preserved@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'permissions' => [
                 'dashboard' => ['view' => '1'],
             ],
@@ -69,12 +69,12 @@ class RoleAutofillTest extends TestCase
     public function test_edit_form_uses_stored_permissions_until_the_role_changes(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);
         $user = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => true, 'add' => false, 'edit' => false, 'delete' => false],

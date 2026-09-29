@@ -47,7 +47,7 @@
                         @endif
                         <div class="text-center">
                             <p class="text-sm font-semibold text-gray-900">{{ $user->name }}</p>
-                            <p class="text-xs text-gray-500">{{ $user->role }}</p>
+                            <p class="text-xs text-gray-500">{{ $user->role?->name ?? '—' }}</p>
                             <p class="text-xs text-gray-400">{{ $user->email }}</p>
                         </div>
                     </div>
@@ -96,7 +96,7 @@
             <div class="flex flex-col h-full w-full rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-gray-700">Account details</h3>
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600">{{ $user->role }}</span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-600">{{ $user->role?->name ?? '—' }}</span>
                 </div>
                 <div class="p-6 space-y-5 flex flex-col flex-1">
                     <div>

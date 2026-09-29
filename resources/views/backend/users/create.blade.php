@@ -108,10 +108,10 @@
                                 <button id="delete-role-button" type="button" onclick="openRoleDialog('delete')" hidden class="shrink-0 text-xs font-semibold text-red-700 hover:text-red-800 hover:underline disabled:opacity-50">Delete selected role</button>
                             @endif
                         </div>
-                        <select id="role" name="role" onchange="handleRoleSelection(event)" required data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="{{ old('permissions') !== null ? '1' : '0' }}" class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <select id="role" name="role_id" onchange="handleRoleSelection(event)" required data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="{{ old('permissions') !== null ? '1' : '0' }}" class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="">Select Role</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role }}" @selected(old('role', session('selected_role', '')) === $role)>{{ $role }}</option>
+                            @foreach($roles as $id => $name)
+                                <option value="{{ $id }}" @selected((string) old('role_id', session('selected_role', '')) === (string) $id)>{{ $name }}</option>
                             @endforeach
                         </select>
                         @if (auth()->user()?->isSuperAdmin())

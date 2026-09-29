@@ -15,7 +15,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::orderByDesc('created_at')->paginate(10);
+        $users = User::with('role')->orderByDesc('created_at')->paginate(10);
 
         return view('backend.users.index', compact('users'));
     }
@@ -26,12 +26,12 @@ class UserController extends Controller
     public function create()
     {
         $roleDefinitions = $this->activeRoleDefinitions();
-        $roles = $roleDefinitions->pluck('name');
+        $roles = $roleDefinitions->pluck('name', 'id');
         $modules = $this->getModules();
         $actions = $this->getActions();
         $checkedPermissions = old('permissions', []);
         $roleDefaults = $roleDefinitions
-            ->mapWithKeys(fn (Role $role) => [$role->name => $role->permissions ?? []])
+            ->mapWithKeys(fn (Role $role) => [$role->id => $role->permissions ?? []])
             ->all();
         $takenEmails = User::pluck('email')->map(fn ($email) => strtolower($email))->values()->all();
 
@@ -47,7 +47,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'string', $this->activeRoleRule()],
+            'role_id' => ['required', 'integer', $this->activeRoleRule()],
             'contact' => ['nullable', 'string', 'max:20', Rule::when($request->filled('contact_country'), ['regex:/^\\d{1,10}$/'])],
             'contact_country' => ['nullable', 'string', 'max:5'],
             'permissions' => ['nullable', 'array'],
@@ -61,7 +61,7 @@ class UserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
+            'role_id' => $validated['role_id'],
             'contact' => $validated['contact'] ?? null,
             'contact_country' => $validated['contact_country'] ?? null,
             'is_active' => $request->boolean('is_active'),
@@ -78,12 +78,12 @@ class UserController extends Controller
     {
         $this->ensureCanManageAccess(request(), $user, false);
         $roleDefinitions = $this->activeRoleDefinitions();
-        $roles = $roleDefinitions->pluck('name');
+        $roles = $roleDefinitions->pluck('name', 'id');
         $modules = $this->getModules();
         $actions = $this->getActions();
         $checkedPermissions = $user->effectivePermissions();
         $roleDefaults = $roleDefinitions
-            ->mapWithKeys(fn (Role $role) => [$role->name => $role->permissions ?? []])
+            ->mapWithKeys(fn (Role $role) => [$role->id => $role->permissions ?? []])
             ->all();
         $takenEmails = User::where('id', '!=', $user->id)->pluck('email')->map(fn ($email) => strtolower($email))->values()->all();
 
@@ -99,7 +99,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'string', $this->activeRoleRule()],
+            'role_id' => ['required', 'integer', $this->activeRoleRule()],
             'contact' => ['nullable', 'string', 'max:20', Rule::when($request->filled('contact_country'), ['regex:/^\\d{1,10}$/'])],
             'contact_country' => ['nullable', 'string', 'max:5'],
             'permissions' => ['nullable', 'array'],
@@ -111,7 +111,7 @@ class UserController extends Controller
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->role = $validated['role'];
+        $user->role_id = $validated['role_id'];
         $user->contact = $validated['contact'] ?? null;
         $user->contact_country = $validated['contact_country'] ?? null;
         $user->is_active = $user->is_protected ? true : $request->boolean('is_active');
@@ -159,7 +159,11 @@ class UserController extends Controller
 
         abort_if($target && ($target->isSuperAdmin() || $target->is_protected), 403, 'Only a Super Admin may manage this account.');
         if ($checkSubmitted) {
-            abort_if($request->input('role') === 'Super Admin', 403, 'Only a Super Admin may assign this role.');
+            $submittedRoleId = $request->integer('role_id');
+            $submittedIsSuperAdmin = $submittedRoleId
+                ? Role::whereKey($submittedRoleId)->where('name', 'Super Admin')->exists()
+                : false;
+            abort_if($submittedIsSuperAdmin, 403, 'Only a Super Admin may assign this role.');
         }
 
         $matrices = $target ? [$target->effectivePermissions()] : [];
@@ -187,7 +191,7 @@ class UserController extends Controller
      */
     private function activeRoleRule()
     {
-        return Rule::exists('roles', 'name')->where('is_active', true);
+        return Rule::exists('roles', 'id')->where('is_active', true);
     }
 
     /**
@@ -206,7 +210,7 @@ class UserController extends Controller
         $permissions = [];
 
         foreach ($this->getModules() as $module) {
-            foreach (['view', 'add', 'edit', 'delete'] as $action) {
+            foreach (array_keys(config('cms.privileges', [])) as $action) {
                 $permissions[$module['key']][$action] = ! empty($submitted[$module['key']][$action]);
             }
         }
@@ -215,26 +219,27 @@ class UserController extends Controller
     }
 
     /**
-     * Shared modules for permission matrix.
+     * Shared modules for permission matrix, from the cms page registry.
      */
     private function getModules()
     {
-        return [
-            ['key' => 'dashboard', 'name' => 'Dashboard', 'description' => 'Main overview and shortcuts.'],
-            ['key' => 'banners', 'name' => 'Banner Management', 'description' => 'Promotional banners and placements.'],
-            ['key' => 'users', 'name' => 'User Management', 'description' => 'Accounts, roles, and access.'],
-            ['key' => 'contacts', 'name' => 'Contact Us', 'description' => 'Inbox for contact form messages.'],
-            ['key' => 'newsletters', 'name' => 'Newsletter', 'description' => 'Newsletter subscribers and audience.'],
-        ];
+        $modules = [];
+
+        foreach (config('cms.pages', []) as $key => $page) {
+            $modules[] = ['key' => $key, 'name' => $page['name'], 'description' => $page['description']];
+        }
+
+        return $modules;
     }
 
     private function getActions()
     {
-        return [
-            ['key' => 'view', 'name' => 'View', 'description' => 'Open and read pages.'],
-            ['key' => 'add', 'name' => 'Add', 'description' => 'Create new records.'],
-            ['key' => 'edit', 'name' => 'Edit', 'description' => 'Change existing records.'],
-            ['key' => 'delete', 'name' => 'Delete', 'description' => 'Permanently remove records.'],
-        ];
+        $actions = [];
+
+        foreach (config('cms.privileges', []) as $key => $description) {
+            $actions[] = ['key' => $key, 'name' => ucfirst($key), 'description' => $description];
+        }
+
+        return $actions;
     }
 }

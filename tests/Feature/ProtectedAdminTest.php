@@ -14,13 +14,13 @@ class ProtectedAdminTest extends TestCase
     public function test_protected_admin_cannot_be_deleted_but_can_still_be_edited(): void
     {
         $deletingAdmin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
         ]);
         $protectedAdmin = User::factory()->create([
             'name' => 'CMS Admin',
             'email' => 'cms@cms.com',
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'is_protected' => true,
             'permissions' => User::fullAccessPermissions(),
@@ -48,7 +48,7 @@ class ProtectedAdminTest extends TestCase
         $admin = User::factory()->create([
             'name' => 'CMS Admin',
             'email' => 'cms@cms.com',
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'is_protected' => true,
             'permissions' => User::fullAccessPermissions(),
@@ -57,7 +57,7 @@ class ProtectedAdminTest extends TestCase
         $response = $this->actingAs($admin)->put(route('users.update', $admin), [
             'name' => 'CMS Admin',
             'email' => 'cms@cms.com',
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => '1',
             'permissions' => [
                 'dashboard' => ['view' => true, 'add' => true, 'edit' => true, 'delete' => true],
@@ -79,7 +79,7 @@ class ProtectedAdminTest extends TestCase
     public function test_role_dropdown_uses_active_database_roles(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
         ]);
         Role::create([
@@ -107,7 +107,7 @@ class ProtectedAdminTest extends TestCase
     public function test_super_admin_role_defaults_check_every_module_permission(): void
     {
         $admin = User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
         ]);
 
@@ -116,7 +116,7 @@ class ProtectedAdminTest extends TestCase
         $response->assertOk();
         $this->assertSame(
             User::fullAccessPermissions(),
-            $response->viewData('roleDefaults')['Super Admin'],
+            $response->viewData('roleDefaults')[Role::where('name', 'Super Admin')->firstOrFail()->id],
         );
     }
 }

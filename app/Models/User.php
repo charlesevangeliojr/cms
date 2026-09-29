@@ -11,6 +11,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    protected ?array $pendingPermissions = null;
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -23,7 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
         'contact',
         'contact_country',
         'avatar_path',
@@ -52,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role_id' => 'integer',
             'is_active' => 'boolean',
             'is_protected' => 'boolean',
             'permissions' => 'array',
@@ -59,26 +61,21 @@ class User extends Authenticatable
     }
 
     /**
-     * Complete permission matrix for full-access CMS administrators.
+     * Complete permission matrix for full-access CMS administrators,
+     * built from the cms page registry.
      *
      * @return array<string, array<string, bool>>
      */
     public static function fullAccessPermissions(): array
     {
-        $actions = [
-            'view' => true,
-            'add' => true,
-            'edit' => true,
-            'delete' => true,
-        ];
+        $actions = array_fill_keys(array_keys(config('cms.privileges', [])), true);
 
-        return [
-            'dashboard' => $actions,
-            'banners' => $actions,
-            'users' => $actions,
-            'contacts' => $actions,
-            'newsletters' => $actions,
-        ];
+        $permissions = [];
+        foreach (array_keys(config('cms.pages', [])) as $page) {
+            $permissions[$page] = $actions;
+        }
+
+        return $permissions;
     }
 
     /**
@@ -94,16 +91,37 @@ class User extends Authenticatable
     }
 
     /**
-     * Database role definition assigned to this user.
+     * Database role assigned to this user.
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    /**
+     * Legacy alias kept while views/tests migrate to the role() relation.
      */
     public function roleRecord(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role', 'name');
+        return $this->role();
+    }
+
+    public function userPrivileges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserPrivilege::class);
     }
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'Super Admin';
+        if ($this->relationLoaded('role')) {
+            return $this->getRelation('role')?->name === 'Super Admin';
+        }
+
+        if ($this->relationLoaded('roleRecord')) {
+            return $this->getRelation('roleRecord')?->name === 'Super Admin';
+        }
+
+        return $this->role()->where('name', 'Super Admin')->exists();
     }
 
     /**
@@ -111,15 +129,73 @@ class User extends Authenticatable
      */
     public function effectivePermissions(): array
     {
-        if (is_array($this->permissions)) {
-            return $this->permissions;
+        $role = $this->relationLoaded('role')
+            ? $this->getRelation('role')
+            : ($this->relationLoaded('roleRecord')
+                ? $this->getRelation('roleRecord')
+                : $this->role()->first());
+
+        $overrides = $this->userPrivileges()->with(['page', 'privilege'])->get();
+        if ($overrides->isEmpty()) {
+            return $role?->permissions ?? self::fullAccessPermissions();
         }
 
-        $role = $this->relationLoaded('roleRecord')
-            ? $this->getRelation('roleRecord')
-            : $this->roleRecord()->first();
+        // Once user-specific settings exist, they are the complete effective
+        // matrix. Missing rows therefore remain denied instead of falling back
+        // to the role, matching the existing permission form semantics.
+        $permissions = [];
+        foreach (Page::query()->orderBy('id')->pluck('slug') as $page) {
+            foreach (Privilege::query()->orderBy('id')->pluck('name') as $privilege) {
+                $permissions[$page][$privilege] = false;
+            }
+        }
+        foreach ($overrides as $override) {
+            $permissions[$override->page->slug][$override->privilege->name] = $override->is_allowed;
+        }
+        return $permissions;
+    }
 
-        return $role?->permissions ?? [];
+    public function getPermissionsAttribute(): array
+    {
+        return $this->effectivePermissions();
+    }
+
+    public function setPermissionsAttribute($value): void
+    {
+        $this->pendingPermissions = is_array($value) ? $value : [];
+    }
+
+    public function syncPermissions(array $permissions): void
+    {
+        $pages = Page::query()->pluck('id', 'slug');
+        $privileges = Privilege::query()->pluck('id', 'name');
+        $rows = [];
+        foreach ($permissions as $page => $actions) {
+            foreach ($actions as $action => $allowed) {
+                if (isset($pages[$page], $privileges[$action])) {
+                    $rows[] = [
+                        'user_id' => $this->id,
+                        'page_id' => $pages[$page],
+                        'privilege_id' => $privileges[$action],
+                        'is_allowed' => (bool) $allowed,
+                    ];
+                }
+            }
+        }
+        $this->userPrivileges()->delete();
+        if ($rows) {
+            UserPrivilege::query()->insert($rows);
+        }
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $user): void {
+            if (isset($user->pendingPermissions)) {
+                $user->syncPermissions($user->pendingPermissions);
+                unset($user->pendingPermissions);
+            }
+        });
     }
 
     /**
@@ -133,13 +209,14 @@ class User extends Authenticatable
     }
 
     /**
-     * First admin route the user is allowed to view.
+     * First admin route the user is allowed to view, following the
+     * cms page registry order.
      */
     public function landingRouteName(): ?string
     {
-        foreach (['dashboard' => 'dashboard', 'contacts' => 'contacts.index', 'newsletters' => 'newsletters.index', 'banners' => 'banners.index', 'users' => 'users.index'] as $module => $route) {
+        foreach (config('cms.pages', []) as $module => $page) {
             if ($this->canAccess($module, 'view')) {
-                return $route;
+                return $page['route'];
             }
         }
 

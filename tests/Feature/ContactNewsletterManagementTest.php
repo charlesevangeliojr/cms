@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -23,7 +24,7 @@ class ContactNewsletterManagementTest extends TestCase
             ->assertDontSee('Users & access')
             ->assertSee('Contact Us')
             ->assertSee('Newsletter')
-            ->assertSeeInOrder(['Dashboard', 'Contact Us', 'Newsletter', 'Banners', 'User Management'])
+            ->assertSeeInOrder(['Dashboard', 'Contact Us', 'Newsletter', 'Banner Management', 'User Management'])
             ->assertSee(route('contacts.index'), false)
             ->assertSee(route('newsletters.index'), false);
     }
@@ -113,7 +114,7 @@ class ContactNewsletterManagementTest extends TestCase
     public function test_contact_and_newsletter_routes_require_permissions(): void
     {
         $user = User::factory()->create([
-            'role' => 'Content Manager',
+            'role_id' => $this->contentManagerRole()->id,
             'is_active' => true,
             'permissions' => [
                 'dashboard' => ['view' => true, 'add' => false, 'edit' => false, 'delete' => false],
@@ -150,7 +151,7 @@ class ContactNewsletterManagementTest extends TestCase
     private function superAdmin(): User
     {
         return User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
             'permissions' => User::fullAccessPermissions(),
         ]);

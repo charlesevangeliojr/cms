@@ -48,7 +48,8 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-900 mb-1.5">Email Address *</label>
-                        <input type="email" name="email" required maxlength="255" value="{{ old('email', $user->email) }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <input type="email" name="email" required maxlength="255" data-validate="email" data-taken-emails='@json($takenEmails ?? [])' value="{{ old('email', $user->email) }}" placeholder="user@nweb.solutions" class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400">Enter a valid email address.</p>
                     </div>
                     @include('backend.partials.account-contact')
                     <div>
@@ -119,10 +120,10 @@
                                 <button id="delete-role-button" type="button" onclick="openRoleDialog('delete')" hidden class="shrink-0 text-xs font-semibold text-red-700 hover:text-red-800 hover:underline disabled:opacity-50">Delete selected role</button>
                             @endif
                         </div>
-                        <select id="role" name="role" onchange="handleRoleSelection(event)" required data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="1" class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <select id="role" name="role_id" onchange="handleRoleSelection(event)" required data-role-defaults='@json($roleDefaults ?? [])' data-preserve-custom="1" class="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                             <option value="">Select Role</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role }}" {{ old('role', $user->role) == $role ? 'selected' : '' }}>{{ $role }}</option>
+                            @foreach($roles as $id => $name)
+                                <option value="{{ $id }}" {{ (string) old('role_id', $user->role_id) === (string) $id ? 'selected' : '' }}>{{ $name }}</option>
                             @endforeach
                         </select>
                         @if (auth()->user()?->isSuperAdmin())

@@ -25,7 +25,7 @@ class EnsureHasPermission
                 'users' => 'users',
                 'contacts' => 'contact messages',
                 'newsletters' => 'newsletter subscribers',
-                default => Str::headline($module),
+                default => strtolower((string) config("cms.pages.{$module}.name", Str::headline($module))),
             };
 
             abort(403, "You are not allowed to {$action} {$moduleLabel}.");

@@ -11,7 +11,7 @@
             <div>
                 <p class="text-xs uppercase tracking-wider text-gray-400">{{ now()->format('l, F j, Y') }}</p>
                 <h2 class="mt-1 text-2xl font-bold">Welcome back, {{ auth()->user()->name }}!</h2>
-                <p class="mt-1 text-sm text-gray-300">Signed in as {{ auth()->user()->email }} — {{ auth()->user()->role }} — latest updates at top.</p>
+                <p class="mt-1 text-sm text-gray-300">Signed in as {{ auth()->user()->email }} — {{ auth()->user()->role?->name ?? '—' }} — latest updates at top.</p>
             </div>
         </div>
     </div>
@@ -240,7 +240,7 @@
                                             <span class="font-medium truncate max-w-[120px]">{{ $user->name }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-3"><span class="inline-flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold">{{ $user->role }}</span></td>
+                                    <td class="px-6 py-3"><span class="inline-flex h-6 items-center rounded-full bg-gray-100 px-2.5 text-xs font-semibold">{{ $user->role?->name ?? '—' }}</span></td>
                                     <td class="px-6 py-3 text-right text-xs text-gray-400">{{ $user->created_at?->format('M j, Y') }}</td>
                                 </tr>
                             @endforeach

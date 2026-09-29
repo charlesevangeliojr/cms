@@ -33,12 +33,18 @@
     @endif
 </fieldset>
 <script>
+function selectedRoleName() {
+    const select = document.getElementById('role');
+    if (!select) return '';
+    const option = select.selectedOptions?.[0] ?? select.options[select.selectedIndex];
+    return (option?.textContent ?? '').trim();
+}
 function handleRoleSelection() {
     const select = document.getElementById('role');
     const button = document.getElementById('delete-role-button');
     if (button) {
         button.hidden = !select.value;
-        button.disabled = select.value === 'Super Admin';
+        button.disabled = selectedRoleName() === 'Super Admin';
         button.title = button.disabled ? 'The Super Admin role cannot be deleted.' : 'Delete this role';
     }
 }
@@ -82,7 +88,7 @@ function checkRoleNameAvailability() {
         return false;
     }
     const taken = Array.from(select.options)
-        .map(option => option.value.trim().toLowerCase())
+        .map(option => (option.textContent || '').trim().toLowerCase())
         .includes(value.toLowerCase());
     if (taken) {
         hint.textContent = 'This role already exists.';
@@ -124,9 +130,9 @@ async function createRoleFromForm(form) {
         }
         const select = document.getElementById('role');
         const defaults = JSON.parse(select.dataset.roleDefaults || '{}');
-        defaults[data.role.name] = data.role.permissions;
-        select.add(new Option(data.role.name, data.role.name));
-        select.value = data.role.name;
+        defaults[data.role.id] = data.role.permissions;
+        select.add(new Option(data.role.name, data.role.id));
+        select.value = data.role.id;
         select.dataset.roleDefaults = JSON.stringify(defaults);
         nameInput.value = '';
         panel.savedPermissions = null;
@@ -147,16 +153,18 @@ document.getElementById('new-role-name')?.addEventListener('input', checkRoleNam
     const dialog = document.getElementById('role-dialog');
     const select = document.getElementById('role');
     const status = document.getElementById('role-status');
-    if (mode === 'delete' && (!select.value || select.value === 'Super Admin')) {
+    const roleName = selectedRoleName();
+    if (mode === 'delete' && (!select.value || roleName === 'Super Admin')) {
         status.textContent = select.value ? 'The Super Admin role cannot be deleted.' : 'Select the role you want to delete first.';
         return;
     }
     dialog.dataset.mode = mode;
     dialog.dataset.role = select.value;
+    dialog.dataset.roleName = roleName;
     document.getElementById('role-dialog-title').textContent = mode === 'create' ? 'Create New Role' : 'Delete role?';
     document.getElementById('role-dialog-help').textContent = mode === 'create'
         ? 'Give the role a name and choose its default permissions. Your account details will stay on this page. The role is saved immediately; save the user separately.'
-        : `Delete "${select.value}" permanently? Roles assigned to any account cannot be deleted. Your account details will stay on this page.`;
+        : `Delete "${roleName}" permanently? Roles assigned to any account cannot be deleted. Your account details will stay on this page.`;
 
     document.getElementById('role-dialog-save').textContent = mode === 'create' ? 'Create and select role' : 'Delete role permanently';
     document.getElementById('role-dialog-error').textContent = '';
@@ -204,9 +212,9 @@ async function saveRoleDialog(button) {
         const select = document.getElementById('role');
         const defaults = JSON.parse(select.dataset.roleDefaults || '{}');
         if (creating) {
-            defaults[data.role.name] = data.role.permissions;
-            select.add(new Option(data.role.name, data.role.name), select.querySelector('optgroup'));
-            select.value = data.role.name;
+            defaults[data.role.id] = data.role.permissions;
+            select.add(new Option(data.role.name, data.role.id), select.querySelector('optgroup'));
+            select.value = data.role.id;
             name.value = '';
             document.getElementById('role-create-fields').savedPermissions = null;
             setRoleMode(false);

@@ -15,8 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->foreignId('role_id')->nullable()->constrained('roles')->restrictOnDelete();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('contact')->nullable();
+            $table->string('contact_country', 5)->nullable();
+            $table->string('avatar_path')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_protected')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

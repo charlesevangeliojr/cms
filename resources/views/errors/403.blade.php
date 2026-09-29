@@ -18,7 +18,9 @@
             'dashboard' => 'Back to Dashboard',
             'banners.index' => 'Back to Banners',
             'users.index' => 'Back to Users',
-            default => 'Back to Login',
+            default => $landingRouteName
+                ? 'Back to '.(collect(config('cms.pages', []))->firstWhere('route', $landingRouteName)['name'] ?? 'Dashboard')
+                : 'Back to Login',
         };
     @endphp
 

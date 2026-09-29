@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Banner;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -131,7 +132,7 @@ class BannerManagementTest extends TestCase
     private function superAdmin(): User
     {
         return User::factory()->create([
-            'role' => 'Super Admin',
+            'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id,
             'is_active' => true,
         ]);
     }

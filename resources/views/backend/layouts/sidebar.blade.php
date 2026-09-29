@@ -86,7 +86,7 @@
                             </span>
                             <span class="hidden sm:flex flex-col items-start leading-none min-w-0 max-w-[140px]">
                                 <span class="truncate text-sm font-semibold text-gray-900">{{ $navUser->name }}</span>
-                                <span class="truncate text-xs text-gray-500">{{ $navUser->role }}</span>
+                                <span class="truncate text-xs text-gray-500">{{ $navUser->role?->name ?? '—' }}</span>
                             </span>
                             <svg class="h-4 w-4 text-gray-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                         </button>
@@ -102,7 +102,7 @@
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-semibold text-gray-900">{{ $navUser->name }}</span>
                                     <span class="block truncate text-xs text-gray-500">{{ $navUser->email }}</span>
-                                    <span class="mt-1 inline-flex rounded-full bg-white border border-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600">{{ $navUser->role }}</span>
+                                    <span class="mt-1 inline-flex rounded-full bg-white border border-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-600">{{ $navUser->role?->name ?? '—' }}</span>
                                 </span>
                             </div>
                             <div class="p-2 space-y-1">

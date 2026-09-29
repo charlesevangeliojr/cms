@@ -138,6 +138,12 @@ Rules:
 - Permission-denied responses must use the shared 403 experience.
 - Name the denied action and module in plain language.
 
+### Adding a page
+
+- Register the page once in `config/cms.php` (`pages`: name, description, route, icon, controller, resource actions). Order sets sidebar and landing priority.
+- Sidebar, landing route, permission forms, role/user matrices, routes, and DB seeds all read that registry — no other list edits needed.
+- Still required per page: controller, views, dashboard card if wanted, and `php artisan migrate:fresh --seed` so `pages`/`privileges` rows and Super Admin grants exist.
+
 ## 6. Frontend and UX standards
 
 - Design mobile-first.

@@ -40,17 +40,17 @@ class SecurityDefenseTest extends TestCase
     public function test_delegated_manager_cannot_escalate_or_take_over_admin(): void
     {
         Role::create(['name' => 'Manager', 'is_active' => true, 'permissions' => []]);
-        $manager = User::factory()->create(['role' => 'Manager', 'is_active' => true, 'permissions' => ['users' => ['view' => true, 'add' => true, 'edit' => true, 'delete' => true]]]);
-        $admin = User::factory()->create(['role' => 'Super Admin', 'is_active' => true]);
+        $manager = User::factory()->create(['role_id' => Role::where('name', 'Manager')->firstOrFail()->id, 'is_active' => true, 'permissions' => ['users' => ['view' => true, 'add' => true, 'edit' => true, 'delete' => true]]]);
+        $admin = User::factory()->create(['role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id, 'is_active' => true]);
         $this->actingAs($manager);
         $this->get(route('users.edit', $admin))->assertForbidden();
         $this->delete(route('users.destroy', $admin))->assertForbidden();
-        $data = ['name' => 'Changed', 'email' => $admin->email, 'role' => 'Manager'];
+        $data = ['name' => 'Changed', 'email' => $admin->email, 'role_id' => Role::where('name', 'Manager')->firstOrFail()->id];
         $this->put(route('users.update', $admin), $data)->assertForbidden();
         $this->assertNotSame('Changed', $admin->fresh()->name);
-        $data = ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password123', 'password_confirmation' => 'password123', 'role' => 'Super Admin'];
+        $data = ['name' => 'New User', 'email' => 'new@example.com', 'password' => 'password123', 'password_confirmation' => 'password123', 'role_id' => Role::where('name', 'Super Admin')->firstOrFail()->id];
         $this->post(route('users.store'), $data)->assertForbidden();
-        $data['role'] = 'Manager';
+        $data['role_id'] = Role::where('name', 'Manager')->firstOrFail()->id;
         $data['permissions'] = ['banners' => ['delete' => '1']];
         $this->post(route('users.store'), $data)->assertForbidden();
         $this->assertDatabaseMissing('users', ['email' => 'new@example.com']);

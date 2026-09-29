@@ -16,7 +16,7 @@ class DashboardController extends Controller
     public function index()
     {
         $totalUsers = User::count();
-        $recentUsers = User::latest('id')->take(5)->get();
+        $recentUsers = User::with('role')->latest('id')->take(5)->get();
 
         $totalBanners = Banner::count();
         $activeBanners = Banner::where('is_active', true)->count();
