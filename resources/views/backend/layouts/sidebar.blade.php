@@ -429,8 +429,13 @@
                 taken = [];
             }
             if (value === '') {
-                hint.textContent = 'Enter a valid email address.';
-                hint.className = 'mt-1.5 text-xs ' + (touched ? 'font-medium text-red-600' : 'text-gray-400');
+                if (!touched) {
+                    hint.textContent = '';
+                    hint.className = 'mt-1.5 text-xs text-gray-400';
+                } else {
+                    hint.textContent = 'Enter a valid email address.';
+                    hint.className = 'mt-1.5 text-xs font-medium text-red-600';
+                }
             } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                 hint.textContent = 'Enter a valid email address.';
                 hint.className = 'mt-1.5 text-xs font-medium text-red-600';
@@ -438,8 +443,8 @@
                 hint.textContent = 'This email is already in use.';
                 hint.className = 'mt-1.5 text-xs font-medium text-red-600';
             } else {
-                hint.textContent = 'Enter a valid email address.';
-                hint.className = 'mt-1.5 text-xs font-medium text-red-600';
+                hint.textContent = '';
+                hint.className = 'mt-1.5 text-xs text-gray-400';
             }
         }
 

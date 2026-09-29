@@ -109,7 +109,7 @@
                         <label for="email" class="mb-1.5 block text-sm font-semibold text-gray-900">Email Address *</label>
                         <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required maxlength="255" data-validate="email"
                                class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400">Enter a valid email address.</p>
+                        <p data-hint="email" class="mt-1.5 text-xs text-gray-400"></p>
                     </div>
                     @include('backend.partials.account-contact')
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">

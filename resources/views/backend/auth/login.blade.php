@@ -105,7 +105,7 @@
 
 
             {{-- Header / Logo --}}
-            <header class="relative z-10 flex items-center justify-between px-10 py-9 xl:px-14 xl:py-11">
+            <header class="relative z-10 flex items-center justify-between px-10 py-6 xl:px-14 xl:py-7">
 
                 <div class="flex items-center gap-4">
 
@@ -136,7 +136,7 @@
 
 
             {{-- Main content --}}
-            <div class="relative z-10 flex min-h-0 flex-1 items-center overflow-y-auto px-10 py-8 xl:px-14">
+            <div class="relative z-10 flex min-h-0 flex-1 items-center overflow-y-auto px-10 py-4 xl:px-14 xl:py-5">
 
                 <div class="max-w-2xl">
 
@@ -154,7 +154,7 @@
 
 
                     <h1
-                        class="max-w-xl text-5xl font-extrabold leading-[1.02] tracking-[-0.045em] xl:text-7xl"
+                        class="max-w-xl text-5xl font-extrabold leading-[1.02] tracking-[-0.045em] xl:text-6xl"
                     >
                         Manage your
                         <span
@@ -170,7 +170,7 @@
 
 
                     <p
-                        class="mt-7 max-w-xl text-base leading-8 text-slate-200/75 xl:text-[17px]"
+                        class="mt-5 max-w-xl text-base leading-7 text-slate-200/75 xl:text-[17px]"
                     >
                         Access your centralized workspace to manage content,
                         monitor activity, and keep everything organized from
@@ -179,13 +179,13 @@
 
 
                     {{-- Features --}}
-                    <div class="mt-10 grid max-w-xl grid-cols-3 gap-3">
+                    <div class="mt-6 grid max-w-xl grid-cols-3 gap-3">
 
                         <div
                             class="rounded-2xl border border-white/10 bg-white/[.06] p-4 backdrop-blur-md"
                         >
                             <div
-                                class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
+                                class="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
                             >
                                 <svg
                                     class="h-4 w-4 text-cyan-200"
@@ -216,7 +216,7 @@
                             class="rounded-2xl border border-white/10 bg-white/[.06] p-4 backdrop-blur-md"
                         >
                             <div
-                                class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
+                                class="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
                             >
                                 <svg
                                     class="h-4 w-4 text-indigo-200"
@@ -247,7 +247,7 @@
                             class="rounded-2xl border border-white/10 bg-white/[.06] p-4 backdrop-blur-md"
                         >
                             <div
-                                class="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
+                                class="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"
                             >
                                 <svg
                                     class="h-4 w-4 text-violet-200"
@@ -282,7 +282,7 @@
 
             {{-- Bottom footer --}}
             <footer
-                class="relative z-10 flex items-center justify-between border-t border-white/[.08] px-10 py-6 text-[11px] text-white/40 xl:px-14"
+                class="relative z-10 flex items-center justify-between border-t border-white/[.08] px-10 py-4 text-[11px] text-white/40 xl:px-14"
             >
                 <span>
                     © {{ date('Y') }} CMS Workspace
