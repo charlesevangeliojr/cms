@@ -1,7 +1,7 @@
 <section class="site-hero" data-hero aria-label="Featured highlights" aria-roledescription="carousel" tabindex="0">
     @forelse($banners ?? [] as $banner)
         <article class="site-slide" data-slide @if(!$loop->first) hidden @endif aria-roledescription="slide" aria-label="{{ $loop->iteration }} of {{ $loop->count }}">
-            <img class="site-hero-image" src="{{ $banner->image_url ?: asset('images/login-background.png') }}" alt="" loading="{{ $loop->first ? 'eager' : 'lazy' }}" @if($loop->first) fetchpriority="high" @endif>
+            <img class="site-hero-image" src="{{ $banner->image_url ?: asset('images/login-background.png') }}" alt="" width="1600" height="600" loading="{{ $loop->first ? 'eager' : 'lazy' }}" @if($loop->first) fetchpriority="high" @endif>
             <div class="site-container site-hero-content">
                 <p class="site-eyebrow">{{ $site['name'] ?? 'CMS Template' }}</p>
                 <h1 class="site-hero-title">{{ $banner->title }}</h1>
@@ -11,7 +11,7 @@
         </article>
     @empty
         <article class="site-slide" data-slide>
-            <img class="site-hero-image" src="{{ asset('images/login-background.png') }}" alt="" fetchpriority="high">
+            <img class="site-hero-image" src="{{ asset('images/login-background.png') }}" alt="" width="1600" height="600" fetchpriority="high">
             <div class="site-container site-hero-content">
                 <p class="site-eyebrow">Welcome to {{ $site['name'] ?? 'CMS Template' }}</p>
                 <h1 class="site-hero-title">Discover more.<br><span>Stay connected.</span></h1>
