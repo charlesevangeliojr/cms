@@ -1,5 +1,12 @@
 /.phpunit.cache
-/tests/
+/tests/*
+!/tests/Feature/
+!/tests/Unit/
+!/tests/TestCase.php
+/tests/Feature/*
+!/tests/Feature/ExampleTest.php
+/tests/Unit/*
+!/tests/Unit/ExampleTest.php
 /node_modules
 /public/build
 /public/hot
