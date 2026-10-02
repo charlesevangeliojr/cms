@@ -49,12 +49,26 @@ class ContactController extends Controller
      */
     public function storePublic(Request $request)
     {
+        // Reject inspect-element tricks (e.g. changing an input to type=file).
+        if ($request->allFiles()) {
+            return back()->withErrors(['message' => 'Invalid submission.'])->withInput();
+        }
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
             'email' => ['required', 'email', 'max:255'],
-            'subject' => ['required', 'string', 'max:255'],
-            'message' => ['required', 'string', 'max:5000'],
+            'subject' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
+            'message' => ['required', 'string', 'max:5000', 'not_regex:/<[^>]*>/'],
+        ], [
+            'name.not_regex' => 'The name must not contain HTML.',
+            'subject.not_regex' => 'The subject must not contain HTML.',
+            'message.not_regex' => 'The message must not contain HTML.',
         ]);
+
+        $validated = array_map(
+            fn ($value) => is_string($value) ? trim(strip_tags($value)) : $value,
+            $validated
+        );
 
         ContactMessage::create([
             ...$validated,

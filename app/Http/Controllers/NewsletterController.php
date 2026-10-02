@@ -47,10 +47,21 @@ class NewsletterController extends Controller
      */
     public function storePublic(Request $request)
     {
+        // Reject inspect-element tricks (e.g. changing an input to type=file).
+        if ($request->allFiles()) {
+            return back()->withErrors(['email' => 'Invalid submission.'])->withInput();
+        }
+
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:newsletter_subscribers,email'],
-            'name' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
+        ], [
+            'name.not_regex' => 'The name must not contain HTML.',
         ]);
+
+        if (is_string($validated['name'] ?? null)) {
+            $validated['name'] = trim(strip_tags($validated['name']));
+        }
 
         NewsletterSubscriber::create([
             'email' => $validated['email'],
