@@ -1,15 +1,23 @@
-<nav class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-            <div class="flex items-center gap-8">
-                <a href="{{ url('/') }}" class="flex items-center gap-2 font-bold text-lg text-red-600"><img src="{{ asset('images/cms-logo.png') }}" alt="CMS logo" class="h-8 w-8 object-contain">{{ $site['name'] ?? 'CMS Template' }}</a>
-                <div class="flex gap-4 text-sm">
-                    @foreach (($nav ?? [['label' => 'Home', 'url' => '/'], ['label' => 'About', 'url' => '/about']]) as $item)
-                        <a href="{{ url($item['url']) }}" class="px-3 py-2 rounded hover:bg-gray-100">{{ $item['label'] }}</a>
-                    @endforeach
-                </div>
-            </div>
-
-        </div>
+<header class="site-header">
+    <div class="site-container site-nav">
+        <a href="{{ route('home') }}" class="site-brand">
+            <img src="{{ asset('images/cms-logo.png') }}" alt="" width="56" height="56">
+            <span>{{ $site['name'] ?? 'CMS Template' }}</span>
+        </a>
+        <nav class="site-desktop-nav" aria-label="Main navigation">
+            @foreach (($nav ?? [['label' => 'Home', 'url' => '/'], ['label' => 'About', 'url' => '/about']]) as $item)
+                <a href="{{ url($item['url']) }}" @if(url()->current() === url($item['url'])) aria-current="page" @endif>{{ $item['label'] }}</a>
+            @endforeach
+        </nav>
+        <a class="site-button site-header-contact" href="{{ route('home') }}#contact">Contact Us <span aria-hidden="true">›</span></a>
+        <details class="site-mobile-nav">
+            <summary>Menu <span aria-hidden="true">☰</span></summary>
+            <nav aria-label="Mobile navigation">
+                @foreach (($nav ?? [['label' => 'Home', 'url' => '/'], ['label' => 'About', 'url' => '/about']]) as $item)
+                    <a href="{{ url($item['url']) }}" @if(url()->current() === url($item['url'])) aria-current="page" @endif>{{ $item['label'] }}</a>
+                @endforeach
+                <a href="{{ route('home') }}#contact">Contact Us</a>
+            </nav>
+        </details>
     </div>
-</nav>
+</header>

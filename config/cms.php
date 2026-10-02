@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\UserController;
+
 /*
 |--------------------------------------------------------------------------
 | CMS admin pages and privileges
@@ -28,7 +33,7 @@ return [
             'description' => 'Inbox for contact form messages.',
             'route' => 'contacts.index',
             'icon' => 'contacts',
-            'controller' => App\Http\Controllers\ContactController::class,
+            'controller' => ContactController::class,
             'actions' => ['index', 'update', 'destroy'],
         ],
         'newsletters' => [
@@ -36,7 +41,7 @@ return [
             'description' => 'Newsletter subscribers and audience.',
             'route' => 'newsletters.index',
             'icon' => 'newsletters',
-            'controller' => App\Http\Controllers\NewsletterController::class,
+            'controller' => NewsletterController::class,
             'actions' => ['index', 'update', 'destroy'],
         ],
         'banners' => [
@@ -44,7 +49,7 @@ return [
             'description' => 'Promotional banners and placements.',
             'route' => 'banners.index',
             'icon' => 'banners',
-            'controller' => App\Http\Controllers\BannerController::class,
+            'controller' => BannerController::class,
             'actions' => ['index', 'create', 'store', 'edit', 'update', 'destroy'],
         ],
         'users' => [
@@ -52,7 +57,7 @@ return [
             'description' => 'Accounts, roles, and access.',
             'route' => 'users.index',
             'icon' => 'users',
-            'controller' => App\Http\Controllers\UserController::class,
+            'controller' => UserController::class,
             'actions' => ['index', 'create', 'store', 'edit', 'update', 'destroy'],
         ],
     ],

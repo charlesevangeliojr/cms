@@ -61,7 +61,7 @@ class ContactController extends Controller
             'is_read' => false,
         ]);
 
-        return back()->with('success', 'Message sent successfully. Check Contact Us in admin.');
+        return back()->with('success', 'Thank you! Your message has been sent.');
     }
 
     /**

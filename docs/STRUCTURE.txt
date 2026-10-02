@@ -98,6 +98,12 @@ resources/views/frontend/
   layouts/app.blade.php: public shell; partials/header and footer; pages/home
   and about; sections/features and stats. PageController supplies site/nav/page;
   home also receives banners. Keep queries out of Blade.
+  sections/hero.blade.php: full-width active-banner carousel with manual arrows,
+  indicators and keyboard navigation; a welcome hero when no banners are active.
+  Home places its introduction and standalone Contact Us form below the hero.
+  The shared public footer contains the newsletter subscription form.
+  Header centers desktop navigation between the brand and Contact Us action,
+  with a native mobile menu. Public colors match the slate/indigo login theme.
 
 resources/views/backend/
   layouts/sidebar.blade.php: routed admin pages' shared shell, navigation behavior,
@@ -173,6 +179,8 @@ contact country dropdown and its flag images.
 STORAGE AND DATABASE
 --------------------
 public/ is the web root. public/frontend/ holds checked-in public assets.
+public/frontend/site.css and site.js style the public shell and initialize the
+banner carousel/mobile menu on normal loads and Turbo navigation (no build step).
 public/images/ holds checked-in brand assets (cms-logo.png, login-background.png).
 public/uploads/banners/ and public/uploads/avatars/ hold runtime uploads.
 config/filesystems.php defines the corresponding disks and public URLs.

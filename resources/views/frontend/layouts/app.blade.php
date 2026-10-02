@@ -12,6 +12,8 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('frontend/site.css') }}">
+    <script src="{{ asset('frontend/site.js') }}" defer></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -23,10 +25,11 @@
         Turbo.start();
     </script>
 </head>
-<body class="font-sans antialiased bg-gray-100 text-gray-900">
+<body class="public-site font-sans antialiased text-gray-900">
+    <a class="site-skip" href="#main-content">Skip to content</a>
     @include('frontend.partials.header')
 
-    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <main id="main-content" class="@yield('main-class', 'site-container site-page')">
         @yield('content')
     </main>
 

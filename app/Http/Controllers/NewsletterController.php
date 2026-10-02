@@ -58,7 +58,7 @@ class NewsletterController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Subscribed successfully. Check Newsletter in admin.');
+        return back()->with('success', 'Thank you for subscribing to our newsletter.');
     }
 
     /**

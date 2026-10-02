@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\UploadedFile;
-use RuntimeException;
-use Throwable;
 
 class ProfileController extends Controller
 {
@@ -43,7 +42,7 @@ class ProfileController extends Controller
             $user->avatar_path = null;
         } elseif ($request->hasFile('avatar')) {
             $oldAvatar = $user->avatar_path;
-            $newPath = $this->storeAvatar($request->file('avatar'));
+            $newPath = $this->uploadImage($request->file('avatar'));
             $user->avatar_path = $newPath;
             if ($oldAvatar) {
                 $this->deleteAvatar($oldAvatar);
@@ -72,106 +71,31 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('success', 'Avatar removed.');
     }
 
-    private function avatarDirectory(): string
+    private function uploadImage(UploadedFile $image): string
     {
-        return public_path('uploads/avatars');
+        $directory = public_path('uploads/avatars');
+
+        if (! File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+
+        $filename = 'avatar_'.time().'_'.Str::random(10).'.'.strtolower($image->getClientOriginalExtension() ?: ($image->guessExtension() ?: 'jpg'));
+
+        $image->move($directory, $filename);
+
+        return 'uploads/avatars/'.$filename;
     }
 
     private function deleteAvatar(?string $avatarPath): void
     {
-        if (! $avatarPath || str_contains($avatarPath, '..') || str_contains($avatarPath, '/') || str_contains($avatarPath, '\\')) {
+        if (! $avatarPath || str_contains($avatarPath, '..')) {
             return;
         }
 
-        $fullPath = $this->avatarDirectory().DIRECTORY_SEPARATOR.basename($avatarPath);
+        $fullPath = public_path('uploads/avatars').DIRECTORY_SEPARATOR.basename($avatarPath);
 
         if (is_file($fullPath)) {
             @unlink($fullPath);
         }
-    }
-
-    private function storeAvatar(UploadedFile $file): string
-    {
-        $extension = strtolower($file->guessExtension() ?: 'jpg');
-        $filename = Str::uuid()->toString().'.'.$extension;
-        $targetDir = $this->avatarDirectory();
-
-        if (! is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
-        }
-
-        $cropped = $this->cropToSquare($file->getPathname(), $extension);
-        if ($cropped && file_exists($cropped)) {
-            $destination = $targetDir.DIRECTORY_SEPARATOR.$filename;
-            $contents = @file_get_contents($cropped);
-            @unlink($cropped);
-
-            if ($contents !== false && @file_put_contents($destination, $contents) !== false) {
-                return $filename;
-            }
-        }
-
-        try {
-            $file->move($targetDir, $filename);
-        } catch (Throwable $exception) {
-            throw new RuntimeException('Avatar could not be stored.', 0, $exception);
-        }
-
-        return $filename;
-    }
-
-    private function cropToSquare(string $sourcePath, string $extension): ?string
-    {
-        if (! function_exists('imagecrop') || ! file_exists($sourcePath)) {
-            return null;
-        }
-        $extension = strtolower($extension);
-        $src = match ($extension) {
-            'jpg','jpeg' => @imagecreatefromjpeg($sourcePath),
-            'png' => @imagecreatefrompng($sourcePath),
-            'webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($sourcePath) : null,
-            default => @imagecreatefromstring((string) file_get_contents($sourcePath)),
-        };
-        if (! $src) {
-            $data = @file_get_contents($sourcePath);
-            $src = $data !== false ? @imagecreatefromstring($data) : null;
-            if (! $src) return null;
-        }
-        $w = imagesx($src);
-        $h = imagesy($src);
-        if ($w <= 0 || $h <= 0) { imagedestroy($src); return null; }
-
-        $size = min($w, $h);
-        $x = (int) floor(($w - $size) / 2);
-        $y = (int) floor(($h - $size) / 2);
-
-        $cropped = @imagecrop($src, ['x'=>$x,'y'=>$y,'width'=>$size,'height'=>$size]);
-        if (!$cropped) { imagedestroy($src); return null; }
-        imagedestroy($src);
-
-        // Resize to 512x512 if larger
-        $max = 512;
-        if ($size > $max) {
-            $dst = imagecreatetruecolor($max, $max);
-            if (in_array($extension, ['png','webp'], true)) {
-                imagealphablending($dst, false);
-                imagesavealpha($dst, true);
-                $transparent = imagecolorallocatealpha($dst, 0,0,0,127);
-                imagefilledrectangle($dst,0,0,$max,$max,$transparent);
-            }
-            imagecopyresampled($dst, $cropped, 0,0,0,0,$max,$max,$size,$size);
-            imagedestroy($cropped);
-            $cropped = $dst;
-        }
-
-        $tmp = sys_get_temp_dir().DIRECTORY_SEPARATOR.Str::uuid()->toString().'.'.$extension;
-        $saved = match($extension) {
-            'jpg','jpeg' => @imagejpeg($cropped, $tmp, 90),
-            'png' => @imagepng($cropped, $tmp),
-            'webp' => function_exists('imagewebp') ? @imagewebp($cropped,$tmp,90) : @imagejpeg($cropped,$tmp,90),
-            default => @imagejpeg($cropped,$tmp,90),
-        };
-        imagedestroy($cropped);
-        return ($saved && file_exists($tmp)) ? $tmp : null;
     }
 }
