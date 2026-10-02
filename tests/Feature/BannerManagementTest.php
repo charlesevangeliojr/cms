@@ -7,7 +7,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class BannerManagementTest extends TestCase
@@ -18,7 +17,53 @@ class BannerManagementTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('banners');
+        // Isolate manual public/uploads/banners writes away from real public/.
+        $this->app->usePublicPath($this->fakePublicPath());
+
+        if (! is_dir($this->bannerDir())) {
+            mkdir($this->bannerDir(), 0755, true);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        foreach (glob($this->bannerDir().DIRECTORY_SEPARATOR.'*') ?: [] as $file) {
+            if (is_file($file)) {
+                @unlink($file);
+            }
+        }
+
+        parent::tearDown();
+    }
+
+    private function fakePublicPath(): string
+    {
+        return storage_path('framework/testing/public');
+    }
+
+    private function bannerDir(): string
+    {
+        return $this->fakePublicPath().DIRECTORY_SEPARATOR.'uploads'.DIRECTORY_SEPARATOR.'banners';
+    }
+
+    private function bannerFullPath(string $path): string
+    {
+        return $this->bannerDir().DIRECTORY_SEPARATOR.basename($path);
+    }
+
+    private function putBannerFile(string $path, string $contents = 'image'): void
+    {
+        file_put_contents($this->bannerFullPath($path), $contents);
+    }
+
+    private function assertBannerExists(string $path): void
+    {
+        $this->assertFileExists($this->bannerFullPath($path));
+    }
+
+    private function assertBannerMissing(string $path): void
+    {
+        $this->assertFileDoesNotExist($this->bannerFullPath($path));
     }
 
     public function test_admin_sees_only_persisted_banners(): void
@@ -58,7 +103,7 @@ class BannerManagementTest extends TestCase
             'description' => 'This is a database banner description.',
             'is_active' => true,
         ]);
-        Storage::disk('banners')->assertExists($banner->image_path);
+        $this->assertBannerExists($banner->image_path);
     }
 
     public function test_banner_images_larger_than_two_megabytes_are_rejected(): void
@@ -84,7 +129,7 @@ class BannerManagementTest extends TestCase
         $admin = $this->superAdmin();
         $banner = Banner::create($this->bannerData('Original Banner'));
         $oldImagePath = $banner->image_path;
-        Storage::disk('banners')->put($oldImagePath, 'original image');
+        $this->putBannerFile($oldImagePath, 'original image');
 
         $response = $this->actingAs($admin)->put(route('banners.update', $banner), [
             'title' => 'Updated Banner',
@@ -101,8 +146,8 @@ class BannerManagementTest extends TestCase
         $this->assertSame('Updated Banner', $banner->title);
         $this->assertSame('Updated description for the banner.', $banner->description);
         $this->assertNotSame($oldImagePath, $banner->image_path);
-        Storage::disk('banners')->assertMissing($oldImagePath);
-        Storage::disk('banners')->assertExists($banner->image_path);
+        $this->assertBannerMissing($oldImagePath);
+        $this->assertBannerExists($banner->image_path);
     }
 
     public function test_admin_can_delete_a_banner_and_its_image(): void
@@ -110,7 +155,7 @@ class BannerManagementTest extends TestCase
         $admin = $this->superAdmin();
         $banner = Banner::create($this->bannerData('Disposable Banner'));
         $imagePath = $banner->image_path;
-        Storage::disk('banners')->put($imagePath, 'image');
+        $this->putBannerFile($imagePath, 'image');
 
         $response = $this->actingAs($admin)->delete(route('banners.destroy', $banner));
 
@@ -118,7 +163,7 @@ class BannerManagementTest extends TestCase
             ->assertSessionHas('success', 'Banner deleted successfully.');
 
         $this->assertDatabaseMissing('banners', ['id' => $banner->id]);
-        Storage::disk('banners')->assertMissing($imagePath);
+        $this->assertBannerMissing($imagePath);
     }
 
     private function fakeBannerImage(string $name = 'banner.png'): UploadedFile

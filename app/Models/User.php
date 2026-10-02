@@ -84,9 +84,15 @@ class User extends Authenticatable
     protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::get(
-            fn (mixed $value, array $attributes): ?string => ! empty($attributes['avatar_path'])
-                ? \Illuminate\Support\Facades\Storage::disk('avatars')->url($attributes['avatar_path'])
-                : null,
+            function (mixed $value, array $attributes): ?string {
+                $path = $attributes['avatar_path'] ?? null;
+
+                if (! is_string($path) || $path === '' || str_contains($path, '..')) {
+                    return null;
+                }
+
+                return '/uploads/avatars/'.basename($path);
+            },
         );
     }
 

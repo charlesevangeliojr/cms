@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -39,14 +39,14 @@ class ProfileController extends Controller
         $user->contact_country = $validated['contact_country'] ?? null;
 
         if ($request->boolean('remove_avatar') && $user->avatar_path) {
-            Storage::disk('avatars')->delete($user->avatar_path);
+            $this->deleteAvatar($user->avatar_path);
             $user->avatar_path = null;
         } elseif ($request->hasFile('avatar')) {
             $oldAvatar = $user->avatar_path;
             $newPath = $this->storeAvatar($request->file('avatar'));
             $user->avatar_path = $newPath;
             if ($oldAvatar) {
-                Storage::disk('avatars')->delete($oldAvatar);
+                $this->deleteAvatar($oldAvatar);
             }
         }
 
@@ -64,7 +64,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->avatar_path) {
-            Storage::disk('avatars')->delete($user->avatar_path);
+            $this->deleteAvatar($user->avatar_path);
             $user->avatar_path = null;
             $user->save();
         }
@@ -72,25 +72,52 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit')->with('success', 'Avatar removed.');
     }
 
+    private function avatarDirectory(): string
+    {
+        return public_path('uploads/avatars');
+    }
+
+    private function deleteAvatar(?string $avatarPath): void
+    {
+        if (! $avatarPath || str_contains($avatarPath, '..') || str_contains($avatarPath, '/') || str_contains($avatarPath, '\\')) {
+            return;
+        }
+
+        $fullPath = $this->avatarDirectory().DIRECTORY_SEPARATOR.basename($avatarPath);
+
+        if (is_file($fullPath)) {
+            @unlink($fullPath);
+        }
+    }
+
     private function storeAvatar(UploadedFile $file): string
     {
         $extension = strtolower($file->guessExtension() ?: 'jpg');
         $filename = Str::uuid()->toString().'.'.$extension;
+        $targetDir = $this->avatarDirectory();
+
+        if (! is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
 
         $cropped = $this->cropToSquare($file->getPathname(), $extension);
         if ($cropped && file_exists($cropped)) {
-            $stored = Storage::disk('avatars')->put($filename, file_get_contents($cropped));
+            $destination = $targetDir.DIRECTORY_SEPARATOR.$filename;
+            $contents = @file_get_contents($cropped);
             @unlink($cropped);
-            if ($stored) {
+
+            if ($contents !== false && @file_put_contents($destination, $contents) !== false) {
                 return $filename;
             }
         }
 
-        $path = Storage::disk('avatars')->putFileAs('', $file, $filename);
-        if ($path === false) {
-            throw new RuntimeException('Avatar could not be stored.');
+        try {
+            $file->move($targetDir, $filename);
+        } catch (Throwable $exception) {
+            throw new RuntimeException('Avatar could not be stored.', 0, $exception);
         }
-        return $path;
+
+        return $filename;
     }
 
     private function cropToSquare(string $sourcePath, string $extension): ?string

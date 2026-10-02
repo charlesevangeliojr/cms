@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class Banner extends Model
 {
@@ -38,9 +37,15 @@ class Banner extends Model
     protected function imageUrl(): Attribute
     {
         return Attribute::get(
-            fn (mixed $value, array $attributes): ?string => ! empty($attributes['image_path'])
-                ? Storage::disk('banners')->url($attributes['image_path'])
-                : null,
+            function (mixed $value, array $attributes): ?string {
+                $path = $attributes['image_path'] ?? null;
+
+                if (! is_string($path) || $path === '' || str_contains($path, '..')) {
+                    return null;
+                }
+
+                return '/uploads/banners/'.basename($path);
+            },
         );
     }
 }

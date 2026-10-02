@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Banner;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -162,33 +161,44 @@ class BannerController extends Controller
     /**
      * Persist a validated banner image and return its relative path.
      * Automatically center-crops to 16:6 ratio.
+     * Manual cPanel-friendly save directly under public/uploads/banners.
      */
+    private function bannerDirectory(): string
+    {
+        return public_path('uploads/banners');
+    }
+
     private function storeImage(UploadedFile $image): string
     {
         $extension = strtolower($image->guessExtension() ?: 'jpg');
         $filename = Str::uuid()->toString().'.'.$extension;
-        $disk = Storage::disk('banners');
+        $targetDir = $this->bannerDirectory();
+
+        if (! is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
 
         $croppedTempPath = $this->cropToSixteenSix($image->getPathname(), $extension);
 
         if ($croppedTempPath !== null && file_exists($croppedTempPath)) {
-            $stored = $disk->put($filename, file_get_contents($croppedTempPath));
+            $destination = $targetDir.DIRECTORY_SEPARATOR.$filename;
+            $contents = @file_get_contents($croppedTempPath);
             @unlink($croppedTempPath);
 
-            if ($stored === false) {
+            if ($contents === false || @file_put_contents($destination, $contents) === false) {
                 throw new RuntimeException('The banner image could not be stored.');
             }
 
             return $filename;
         }
 
-        $path = $disk->putFileAs('', $image, $filename);
-
-        if ($path === false) {
-            throw new RuntimeException('The banner image could not be stored.');
+        try {
+            $image->move($targetDir, $filename);
+        } catch (Throwable $exception) {
+            throw new RuntimeException('The banner image could not be stored.', 0, $exception);
         }
 
-        return $path;
+        return $filename;
     }
 
     /**
@@ -306,14 +316,18 @@ class BannerController extends Controller
     }
 
     /**
-     * Delete a banner image when it is managed by the banner disk.
+     * Delete a banner image from public/uploads/banners.
      */
     private function deleteImage(?string $imagePath): void
     {
-        if (! $imagePath || str_contains($imagePath, '..')) {
+        if (! $imagePath || str_contains($imagePath, '..') || str_contains($imagePath, '/') || str_contains($imagePath, '\\')) {
             return;
         }
 
-        Storage::disk('banners')->delete($imagePath);
+        $fullPath = $this->bannerDirectory().DIRECTORY_SEPARATOR.basename($imagePath);
+
+        if (is_file($fullPath)) {
+            @unlink($fullPath);
+        }
     }
 }
