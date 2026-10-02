@@ -54,9 +54,9 @@ class NewsletterController extends Controller
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:newsletter_subscribers,email'],
-            'name' => ['nullable', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
+            'name' => ['nullable', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
         ], [
-            'name.not_regex' => 'The name must not contain HTML.',
+            'name.not_regex' => 'The name contains disallowed content.',
         ]);
 
         if (is_string($validated['name'] ?? null)) {

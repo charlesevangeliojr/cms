@@ -55,14 +55,14 @@ class ContactController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
+            'name' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
             'email' => ['required', 'email', 'max:255'],
-            'subject' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/'],
-            'message' => ['required', 'string', 'max:5000', 'not_regex:/<[^>]*>/'],
+            'subject' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
+            'message' => ['required', 'string', 'max:5000', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
         ], [
-            'name.not_regex' => 'The name must not contain HTML.',
-            'subject.not_regex' => 'The subject must not contain HTML.',
-            'message.not_regex' => 'The message must not contain HTML.',
+            'name.not_regex' => 'The name contains disallowed content.',
+            'subject.not_regex' => 'The subject contains disallowed content.',
+            'message.not_regex' => 'The message contains disallowed content.',
         ]);
 
         $validated = array_map(
