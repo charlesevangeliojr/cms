@@ -49,6 +49,7 @@
                 <input id="contact_email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" placeholder="juan@example.com"
                        class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
             </div>
+            @include('frontend.partials.contact-number')
             <div>
                 <label for="contact_subject" class="block text-sm font-semibold text-gray-900 mb-1.5">Subject *</label>
                 <input id="contact_subject" name="subject" type="text" value="{{ old('subject') }}" required maxlength="255" placeholder="e.g. Inquiry about services"

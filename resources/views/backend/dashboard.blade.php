@@ -151,6 +151,9 @@
                                     <td class="px-6 py-3">
                                         <p class="font-medium truncate max-w-[140px]">{{ $c->name }}</p>
                                         <p class="text-xs text-gray-400 truncate max-w-[140px]">{{ $c->email }}</p>
+                                        @if(!empty($c->contact))
+                                            <p class="text-xs text-gray-400 truncate max-w-[140px]">{{ $c->contact_country }}{{ $c->contact }}</p>
+                                        @endif
                                     </td>
                                     <td class="px-6 py-3"><span class="truncate max-w-[140px] inline-block">{{ $c->subject }}</span> <span class="ml-2 inline-flex h-5 items-center rounded-full px-2 text-xs font-semibold {{ $c->is_read ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">{{ $c->is_read ? 'Read' : 'Unread' }}</span></td>
                                     <td class="px-6 py-3 text-right text-xs text-gray-400">{{ $c->created_at?->format('M j, Y') }}</td>
@@ -191,7 +194,7 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-3">
                                         <p class="font-medium truncate max-w-[180px]">{{ $n->email }}</p>
-                                        <p class="text-xs text-gray-400">{{ $n->name ?? '—' }}</p>
+                                        <p class="text-xs text-gray-400">{{ $n->created_at?->format('M j, Y') }}</p>
                                     </td>
                                     <td class="px-6 py-3"><span class="inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold {{ $n->is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600 border border-gray-200' }}">{{ $n->is_active ? 'Active' : 'Inactive' }}</span></td>
                                     <td class="px-6 py-3 text-right text-xs text-gray-400">{{ $n->created_at?->format('M j, Y') }}</td>

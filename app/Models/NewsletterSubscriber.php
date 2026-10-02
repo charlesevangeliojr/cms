@@ -13,7 +13,6 @@ class NewsletterSubscriber extends Model
      */
     protected $fillable = [
         'email',
-        'name',
         'is_active',
     ];
 

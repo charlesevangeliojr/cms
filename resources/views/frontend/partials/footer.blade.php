@@ -22,11 +22,6 @@
         <form method="POST" action="{{ route('newsletter.store') }}" class="space-y-4" data-turbo="false">
             @csrf
             <div>
-                <label for="newsletter_name" class="block text-sm font-semibold text-slate-100 mb-1.5">Name <span class="font-normal text-gray-400">(optional)</span></label>
-                <input id="newsletter_name" name="name" type="text" value="{{ old('name') }}" maxlength="255" placeholder="e.g. Juan"
-                       class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">
-            </div>
-            <div>
                 <label for="newsletter_email" class="block text-sm font-semibold text-slate-100 mb-1.5">Email *</label>
                 <input id="newsletter_email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" placeholder="juan@example.com"
                        class="w-full rounded-xl border border-gray-300 bg-gray-50/50 px-4 py-2.5 text-sm focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500">

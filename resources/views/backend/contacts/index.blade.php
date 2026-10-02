@@ -40,6 +40,7 @@
                     <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                         <tr>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Message</th>
+                            <th class="px-6 py-3 font-semibold whitespace-nowrap">Contact Number</th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Subject</th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Status</th>
                             <th class="px-6 py-3 text-right font-semibold whitespace-nowrap">Actions</th>
@@ -52,6 +53,9 @@
                                     <p class="font-semibold text-gray-900">{{ $message->name }}</p>
                                     <p class="text-xs text-gray-400">{{ $message->email }} · {{ $message->created_at?->format('M j, Y') }}</p>
                                     <p class="mt-1 max-w-md truncate text-sm text-gray-500">{{ $message->message }}</p>
+                                </td>
+                                <td data-label="Contact Number" class="px-6 py-4 align-middle whitespace-nowrap text-sm font-medium text-gray-700">
+                                    {{ !empty($message->contact) ? ($message->contact_country ?? '').$message->contact : '—' }}
                                 </td>
                                 <td data-label="Subject" class="px-6 py-4 align-middle font-medium text-gray-700 whitespace-nowrap">
                                     {{ $message->subject }}
@@ -76,6 +80,8 @@
                                                 data-id="{{ $message->id }}"
                                                 data-name="{{ $message->name }}"
                                                 data-email="{{ $message->email }}"
+                                                data-contact-country="{{ $message->contact_country ?? '' }}"
+                                                data-contact="{{ $message->contact ?? '' }}"
                                                 data-subject="{{ $message->subject }}"
                                                 data-message="{{ $message->message }}"
                                                 data-date="{{ $message->created_at?->format('M j, Y g:i A') }}"
@@ -153,6 +159,10 @@
                 <p id="modalEmail" class="text-sm text-gray-500"></p>
             </div>
             <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Number</p>
+                <p id="modalContact" class="mt-1 text-sm font-medium text-gray-900"></p>
+            </div>
+            <div>
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</p>
                 <p id="modalSubject" class="mt-1 font-medium text-gray-900"></p>
             </div>
@@ -175,6 +185,11 @@
 function openContactModal(btn) {
     const name = btn.dataset.name || '';
     const email = btn.dataset.email || '';
+    const contactCountry = btn.dataset.contactCountry || btn.dataset.contactcountry || '';
+    // dataset converts data-contact-country to contactCountry; fallback reads attribute directly
+    const contactAttr = btn.getAttribute('data-contact') || '';
+    const contactCountryAttr = btn.getAttribute('data-contact-country') || contactCountry;
+    const contactDisplay = (contactCountryAttr || contactAttr) ? `${contactCountryAttr}${contactAttr}`.trim() : '';
     const subject = btn.dataset.subject || '';
     const message = btn.dataset.message || '';
     const date = btn.dataset.date || '';
@@ -184,6 +199,7 @@ function openContactModal(btn) {
 
     document.getElementById('modalName').textContent = name;
     document.getElementById('modalEmail').textContent = email;
+    document.getElementById('modalContact').textContent = contactDisplay || '—';
     document.getElementById('modalSubject').textContent = subject;
     document.getElementById('modalMessage').textContent = message;
     document.getElementById('modalDate').textContent = date;

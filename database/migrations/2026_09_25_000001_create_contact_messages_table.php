@@ -15,12 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email');
+            $table->string('contact_country', 10)->nullable();
+            $table->string('contact', 20)->nullable();
             $table->string('subject');
             $table->text('message');
             $table->boolean('is_read')->default(false)->index();
             $table->timestamps();
 
             $table->index('email');
+            $table->index('contact');
         });
     }
 

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('newsletter_subscribers', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
-            $table->string('name')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
         });

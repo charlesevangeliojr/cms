@@ -50,7 +50,7 @@
                                 <td class="px-6 py-4 align-middle">
                                     <p class="font-semibold text-gray-900">{{ $subscriber->email }}</p>
                                     <p class="text-xs text-gray-400">
-                                        {{ $subscriber->name ?? 'No name' }} · {{ $subscriber->created_at?->format('M j, Y') }}
+                                        {{ $subscriber->created_at?->format('M j, Y') }}
                                     </p>
                                 </td>
                                 <td class="px-6 py-4 align-middle whitespace-nowrap">

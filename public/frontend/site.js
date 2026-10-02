@@ -1,5 +1,106 @@
 (() => {
     const initialized = new WeakSet();
+
+    function closeCountryDropdown(dropdown) {
+        const list = dropdown.querySelector('[data-country-list]');
+        const button = dropdown.querySelector('[data-country-button]');
+        const chevron = dropdown.querySelector('[data-country-chevron]');
+        if (!list || list.classList.contains('hidden')) return;
+        list.classList.add('hidden');
+        button?.setAttribute('aria-expanded', 'false');
+        chevron?.classList.remove('rotate-180');
+    }
+
+    function filterCountryOptions(dropdown, term) {
+        const query = term.trim().toLowerCase();
+        dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+            const match = query === '' || (option.dataset.name || '').includes(query);
+            option.closest('li')?.classList.toggle('hidden', !match);
+        });
+    }
+
+    function selectCountryCode(dropdown, code, iso) {
+        const input = dropdown.querySelector('[data-country-input]');
+        const label = dropdown.querySelector('[data-country-code]');
+        const flag = dropdown.querySelector('[data-country-flag]');
+        if (input) input.value = code;
+        if (label) label.textContent = code;
+        if (flag) {
+            if (iso) {
+                flag.src = 'https://flagcdn.com/w40/' + iso + '.png';
+                flag.style.display = '';
+            } else {
+                flag.style.display = 'none';
+            }
+        }
+        dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+            const active = option.dataset.code === code && (!iso || option.dataset.iso === iso);
+            option.classList.toggle('bg-indigo-50', active);
+            option.classList.toggle('font-semibold', active);
+            option.classList.toggle('text-indigo-700', active);
+            option.querySelector('[data-country-check]')?.classList.toggle('hidden', !active);
+            option.closest('li')?.setAttribute('aria-selected', String(active));
+        });
+        const search = dropdown.querySelector('[data-country-search]');
+        if (search) {
+            search.value = '';
+            filterCountryOptions(dropdown, '');
+        }
+        closeCountryDropdown(dropdown);
+    }
+
+    function initializeCountryDropdowns() {
+        if (document.documentElement.dataset.countryGlobalBound !== 'true') {
+            document.documentElement.dataset.countryGlobalBound = 'true';
+            document.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-country-dropdown]').forEach((dropdown) => {
+                    if (!dropdown.contains(e.target)) closeCountryDropdown(dropdown);
+                });
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') document.querySelectorAll('[data-country-dropdown]').forEach(closeCountryDropdown);
+            });
+        }
+        document.querySelectorAll('[data-country-dropdown]').forEach((dropdown) => {
+            const button = dropdown.querySelector('[data-country-button]');
+            const list = dropdown.querySelector('[data-country-list]');
+            const chevron = dropdown.querySelector('[data-country-chevron]');
+            if (!button || !list) return;
+            if (dropdown.dataset.countryInitialized !== 'true') {
+                dropdown.dataset.countryInitialized = 'true';
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const willOpen = list.classList.contains('hidden');
+                    document.querySelectorAll('[data-country-dropdown]').forEach((other) => {
+                        if (other !== dropdown) closeCountryDropdown(other);
+                    });
+                    list.classList.toggle('hidden', !willOpen);
+                    button.setAttribute('aria-expanded', String(willOpen));
+                    chevron?.classList.toggle('rotate-180', willOpen);
+                });
+                dropdown.querySelectorAll('[data-country-option]').forEach((option) => {
+                    option.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectCountryCode(dropdown, option.dataset.code, option.dataset.iso);
+                    });
+                });
+                dropdown.querySelector('[data-country-search]')?.addEventListener('input', (e) => {
+                    filterCountryOptions(dropdown, e.target.value);
+                });
+            }
+        });
+    }
+
+    function initializeContactNumberInputs() {
+        document.querySelectorAll('#contact[inputmode="numeric"]').forEach((input) => {
+            if (input.dataset.contactNumberInitialized === 'true') return;
+            input.dataset.contactNumberInitialized = 'true';
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/\D/g, '').slice(0, 10);
+            });
+        });
+    }
+
     function initializeSite() {
         document.querySelectorAll('[data-hero]').forEach((hero) => {
             if (initialized.has(hero)) return;
@@ -40,6 +141,8 @@
                 }
             });
         });
+        initializeCountryDropdowns();
+        initializeContactNumberInputs();
     }
     document.addEventListener('DOMContentLoaded', initializeSite);
     document.addEventListener('turbo:load', initializeSite);

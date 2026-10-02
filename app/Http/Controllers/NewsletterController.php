@@ -21,10 +21,7 @@ class NewsletterController extends Controller
 
         $subscribers = NewsletterSubscriber::query()
             ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('email', 'like', "%{$search}%")
-                        ->orWhere('name', 'like', "%{$search}%");
-                });
+                $query->where('email', 'like', "%{$search}%");
             })
             ->when($status === 'active', fn ($query) => $query->where('is_active', true))
             ->when($status === 'inactive', fn ($query) => $query->where('is_active', false))
@@ -54,18 +51,10 @@ class NewsletterController extends Controller
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:newsletter_subscribers,email'],
-            'name' => ['nullable', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
-        ], [
-            'name.not_regex' => 'The name contains disallowed content.',
         ]);
-
-        if (is_string($validated['name'] ?? null)) {
-            $validated['name'] = trim(strip_tags($validated['name']));
-        }
 
         NewsletterSubscriber::create([
             'email' => $validated['email'],
-            'name' => $validated['name'] ?? null,
             'is_active' => true,
         ]);
 

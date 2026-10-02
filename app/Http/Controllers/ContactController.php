@@ -24,6 +24,7 @@ class ContactController extends Controller
                 $query->where(function ($query) use ($search) {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('contact', 'like', "%{$search}%")
                         ->orWhere('subject', 'like', "%{$search}%")
                         ->orWhere('message', 'like', "%{$search}%");
                 });
@@ -57,10 +58,13 @@ class ContactController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
             'email' => ['required', 'email', 'max:255'],
+            'contact_country' => ['nullable', 'string', 'max:10'],
+            'contact' => ['nullable', 'string', 'max:20', 'regex:/^\d{1,10}$/'],
             'subject' => ['required', 'string', 'max:255', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
             'message' => ['required', 'string', 'max:5000', 'not_regex:/<[^>]*>/', 'not_regex:/\bhttps?:\/\/|www\./i', 'not_regex:/\.(png|jpe?g|webp|gif|bmp|svg|pdf|docx?|xlsx?|exe|zip|rar|mp4|mp3|avi|mov|txt)$/i'],
         ], [
             'name.not_regex' => 'The name contains disallowed content.',
+            'contact.regex' => 'The contact number must be up to 10 digits.',
             'subject.not_regex' => 'The subject contains disallowed content.',
             'message.not_regex' => 'The message contains disallowed content.',
         ]);
@@ -69,6 +73,13 @@ class ContactController extends Controller
             fn ($value) => is_string($value) ? trim(strip_tags($value)) : $value,
             $validated
         );
+
+        if (empty($validated['contact'])) {
+            $validated['contact'] = null;
+            $validated['contact_country'] = null;
+        } elseif (empty($validated['contact_country'])) {
+            $validated['contact_country'] = null;
+        }
 
         ContactMessage::create([
             ...$validated,
