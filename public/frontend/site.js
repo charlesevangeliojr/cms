@@ -101,6 +101,57 @@
         });
     }
 
+    function initializePublicForms() {
+        document.querySelectorAll('form[data-ajax-form]').forEach((form) => {
+            if (form.dataset.ajaxFormInitialized === 'true') return;
+            form.dataset.ajaxFormInitialized = 'true';
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (form.dataset.submitting === 'true') return;
+                form.dataset.submitting = 'true';
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalLabel = submitButton ? submitButton.textContent : null;
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = form.id === 'newsletter-form' ? 'Subscribing...' : 'Sending...';
+                }
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                        },
+                        body: new FormData(form),
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (response.ok) {
+                        window.showNotification?.(data.message || 'Submitted successfully.', 'success');
+                        form.reset();
+                    } else if (response.status === 422) {
+                        const errors = data.errors || {};
+                        const messages = Object.values(errors).flat();
+                        window.showNotification?.(messages.join('\n') || data.message || 'Please check your input.', 'error');
+                    } else if (response.status === 429) {
+                        window.showNotification?.(data.message || 'Too many attempts. Please try again later.', 'error');
+                    } else {
+                        window.showNotification?.(data.message || 'Something went wrong. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    window.showNotification?.('Network error. Please check your connection and try again.', 'error');
+                } finally {
+                    delete form.dataset.submitting;
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        if (originalLabel !== null) submitButton.textContent = originalLabel;
+                    }
+                }
+            });
+        });
+    }
+
     function initializeSite() {
         document.querySelectorAll('[data-hero]').forEach((hero) => {
             if (initialized.has(hero)) return;
@@ -143,6 +194,7 @@
         });
         initializeCountryDropdowns();
         initializeContactNumberInputs();
+        initializePublicForms();
     }
     document.addEventListener('DOMContentLoaded', initializeSite);
     document.addEventListener('turbo:load', initializeSite);

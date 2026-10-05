@@ -37,7 +37,7 @@
             <h2 id="contact-heading" class="text-xl font-bold tracking-tight text-gray-900">Contact Us</h2>
             <p class="text-sm text-gray-500 mt-1">Have a question? Send us a message.</p>
         </div>
-        <form method="POST" action="{{ route('contact.store') }}" class="p-6 space-y-4" data-turbo="false">
+        <form id="contact-form" method="POST" action="{{ route('contact.store') }}" class="p-6 space-y-4" data-turbo="false" data-ajax-form>
             @csrf
             <div>
                 <label for="contact_name" class="block text-sm font-semibold text-gray-900 mb-1.5">Name *</label>

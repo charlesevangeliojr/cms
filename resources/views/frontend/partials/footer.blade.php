@@ -19,7 +19,7 @@
             <h2 id="newsletter-heading" class="text-xl font-bold tracking-tight text-slate-100">Newsletter</h2>
             <p class="text-sm text-slate-300 mt-1">Subscribe to receive our latest updates.</p>
         </div>
-        <form method="POST" action="{{ route('newsletter.store') }}" class="space-y-4" data-turbo="false">
+        <form id="newsletter-form" method="POST" action="{{ route('newsletter.store') }}" class="space-y-4" data-turbo="false" data-ajax-form>
             @csrf
             <div>
                 <label for="newsletter_email" class="block text-sm font-semibold text-slate-100 mb-1.5">Email *</label>

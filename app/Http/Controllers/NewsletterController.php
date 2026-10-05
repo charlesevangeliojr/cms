@@ -44,8 +44,17 @@ class NewsletterController extends Controller
      */
     public function storePublic(Request $request)
     {
+        $wantsJson = $request->expectsJson() || $request->ajax() || $request->wantsJson();
+
         // Reject inspect-element tricks (e.g. changing an input to type=file).
         if ($request->allFiles()) {
+            if ($wantsJson) {
+                return response()->json([
+                    'message' => 'Invalid submission.',
+                    'errors' => ['email' => ['Invalid submission.']],
+                ], 422);
+            }
+
             return back()->withErrors(['email' => 'Invalid submission.'])->withInput();
         }
 
@@ -57,6 +66,10 @@ class NewsletterController extends Controller
             'email' => $validated['email'],
             'is_active' => true,
         ]);
+
+        if ($wantsJson) {
+            return response()->json(['message' => 'Thank you for subscribing to our newsletter.']);
+        }
 
         return back()->with('success', 'Thank you for subscribing to our newsletter.');
     }

@@ -50,8 +50,17 @@ class ContactController extends Controller
      */
     public function storePublic(Request $request)
     {
+        $wantsJson = $request->expectsJson() || $request->ajax() || $request->wantsJson();
+
         // Reject inspect-element tricks (e.g. changing an input to type=file).
         if ($request->allFiles()) {
+            if ($wantsJson) {
+                return response()->json([
+                    'message' => 'Invalid submission.',
+                    'errors' => ['message' => ['Invalid submission.']],
+                ], 422);
+            }
+
             return back()->withErrors(['message' => 'Invalid submission.'])->withInput();
         }
 
@@ -85,6 +94,10 @@ class ContactController extends Controller
             ...$validated,
             'is_read' => false,
         ]);
+
+        if ($wantsJson) {
+            return response()->json(['message' => 'Thank you! Your message has been sent.']);
+        }
 
         return back()->with('success', 'Thank you! Your message has been sent.');
     }
