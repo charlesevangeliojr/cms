@@ -6,7 +6,41 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="turbo-cache-control" content="no-cache">
 
-    <title>@yield('title', 'CMS Template')</title>
+    @php
+        $metadata = array_merge(
+            config('metadata.defaults', []),
+            config('metadata.pages.'.(request()->route()?->getName() ?? ''), []),
+        );
+        $metaTitle = trim($__env->yieldContent('title', $metadata['title'] ?? 'CMS Template'));
+        $metaDescription = trim($__env->yieldContent('meta_description', $metadata['description'] ?? ''));
+        $metaTitle = $metaTitle.' | '.($metadata['site_name'] ?? 'CMS Template');
+        $canonicalUrl = request()->route()?->getName()
+            ? route(request()->route()->getName())
+            : url()->current();
+        $metaImage = asset($metadata['image'] ?? 'images/cms-logo.png');
+    @endphp
+
+    <title>{{ $metaTitle }}</title>
+    @if ($metaDescription !== '')
+        <meta name="description" content="{{ $metaDescription }}">
+    @endif
+    <meta name="robots" content="{{ $metadata['robots'] ?? 'index, follow' }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $metadata['site_name'] ?? 'CMS Template' }}">
+    <meta property="og:title" content="{{ $metaTitle }}">
+    @if ($metaDescription !== '')
+        <meta property="og:description" content="{{ $metaDescription }}">
+    @endif
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:image" content="{{ $metaImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $metaTitle }}">
+    @if ($metaDescription !== '')
+        <meta name="twitter:description" content="{{ $metaDescription }}">
+    @endif
+    <meta name="twitter:image" content="{{ $metaImage }}">
 
     <link rel="icon" type="image/png" href="{{ asset('images/cms-logo.png') }}">
 
