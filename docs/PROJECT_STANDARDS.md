@@ -1,6 +1,6 @@
 # CMS Project Base Standards
 
-This document is the reusable template standard for this CMS. Every developer working on an ongoing project from this base must follow it. `docs/STRUCTURE.txt` describes where files live; this document describes how work must be done.
+This document is the reusable template standard for this CMS. Every developer working on an ongoing project from this base must follow it. `docs/STRUCTURE.md` describes where files live; this document describes how work must be done.
 
 ## 1. Template purpose
 
@@ -204,14 +204,14 @@ A task is done only when all applicable items pass:
 6. `php vendor/bin/pint --test` passes.
 7. `php artisan test` passes.
 8. `php artisan view:cache` and `view:clear` pass.
-9. `docs/STRUCTURE.txt` and this standard are updated if structure or workflow changed.
+9. `docs/STRUCTURE.md` and this standard are updated if structure or workflow changed.
 10. No unrelated files or generated runtime files are committed.
 
 ## 10. Template change process
 
 1. Implement the feature using the existing base pattern.
 2. Add or update tests before considering the work complete.
-3. Update `docs/STRUCTURE.txt` when folders, routes, or responsibilities change.
+3. Update `docs/STRUCTURE.md` when folders, routes, or responsibilities change.
 4. Update this standard when adding a reusable architectural rule.
 5. Verify migrations from an empty database when schema changes are involved.
 6. Keep template documentation free of project-specific credentials or data.

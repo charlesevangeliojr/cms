@@ -1,6 +1,6 @@
 CMS PROJECT - STRUCTURE & GUIDE
 ==============================
-Canonical location: docs/STRUCTURE.txt
+Canonical location: docs/STRUCTURE.md
 Related documents: README.md, docs/PROJECT_STANDARDS.md, docs/SECURITY.md
 Reviewed against the working tree: 2026-10-08
 
