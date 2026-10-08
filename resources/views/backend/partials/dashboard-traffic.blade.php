@@ -13,11 +13,24 @@
             <div><h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Active users in last 5 minutes</h3><p data-traffic-value="active5m" class="mt-2 text-4xl font-medium tabular-nums text-gray-900">{{ $number($analyticsRealtime['active5m']) }}</p></div>
             <div class="border-t border-gray-100 pt-4 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0"><h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total users this month</h3><p data-traffic-value="monthlyUsers" class="mt-2 text-4xl font-medium tabular-nums text-indigo-700">{{ $number($analyticsRealtime['monthlyUsers']) }}</p><p data-traffic-month class="mt-1 text-xs text-gray-500">{{ $analyticsRealtime['monthLabel'] }} · month to date</p></div>
         </div>
-        <div class="mt-7"><h3 class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Active users per minute</h3>
+        <div class="mt-7">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 data-traffic-chart-title class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Active users per minute</h3>
+                <div class="flex items-center gap-2">
+                    <label for="traffic-range" class="text-xs font-medium text-gray-500">View</label>
+                    <select id="traffic-range" data-traffic-range class="rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-10 text-sm text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <option value="30m">Last 30 minutes</option>
+                        <option value="today">Today</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                        <option value="month">This month</option>
+                    </select>
+                </div>
+            </div>
             <div class="relative mt-3 pr-9">
                 <div class="relative h-36" role="group" data-traffic-chart aria-label="{{ $analyticsRealtime['available'] ? 'Active users per minute, oldest to newest, for the last 30 minutes.' : 'Active users per minute: data unavailable.' }}">
                     <div class="pointer-events-none absolute inset-0 flex flex-col justify-between" aria-hidden="true"><div class="border-t border-gray-100"></div><div class="border-t border-gray-100"></div><div class="border-t border-gray-200"></div></div>
-                    <div class="absolute inset-0 flex items-end gap-1">
+                    <div data-traffic-bars class="absolute inset-0 flex items-end gap-1">
                         @foreach($analyticsRealtime['minutes'] as $minute => $users)
                             <div data-traffic-minute data-minute-offset="{{ 29 - $minute }}" data-users="{{ $users }}" tabindex="0" role="img" aria-label="{{ $analyticsRealtime['available'] ? $users.' active users' : 'Analytics data unavailable' }}" class="group relative flex h-full min-w-0 flex-1 items-end outline-none focus-visible:ring-2 focus-visible:ring-indigo-400" title="{{ $analyticsRealtime['available'] ? $users.' active users' : 'Analytics data unavailable' }}"><div data-traffic-bar class="w-full origin-bottom cursor-crosshair rounded-t-sm bg-indigo-500 transition-[height,background-color,transform] duration-150 ease-out group-hover:scale-y-110 group-hover:bg-indigo-700 group-hover:shadow-md group-focus-within:bg-indigo-700" style="height: {{ $analyticsRealtime['available'] ? $users / $peak * 100 : 0 }}%"></div></div>
                         @endforeach
@@ -26,7 +39,8 @@
                 </div>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex w-7 flex-col justify-between text-right text-[11px] text-gray-400" aria-hidden="true"><span data-traffic-peak>{{ $peak }}</span><span data-traffic-mid>{{ $peak / 2 }}</span><span>0</span></div>
             </div>
-            <div class="mr-9 mt-2 flex justify-between text-[10px] text-gray-400" aria-hidden="true"><span>−30 min</span><span>−25 min</span><span>−20 min</span><span>−15 min</span><span>−10 min</span><span>−5 min</span><span>Now</span></div>
+            <div data-traffic-axis class="mr-9 mt-2 flex justify-between text-[10px] text-gray-400" aria-hidden="true"><span>−30 min</span><span>−25 min</span><span>−20 min</span><span>−15 min</span><span>−10 min</span><span>−5 min</span><span>Now</span></div>
+            <p data-traffic-chart-status role="status" class="mt-3 text-xs text-gray-500">{{ $analyticsRealtime['available'] ? 'Realtime activity · updates every minute.' : 'Chart data is currently unavailable.' }}</p>
         </div>
     </div>
 </section>

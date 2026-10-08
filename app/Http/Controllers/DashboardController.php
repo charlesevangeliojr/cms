@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HomeBannerImage;
-use App\Models\PageBanner;
 use App\Models\ContactMessage;
+use App\Models\HomeBannerImage;
 use App\Models\NewsletterSubscriber;
+use App\Models\PageBanner;
 use App\Models\User;
 use App\Services\GoogleAnalyticsRealtime;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
 class DashboardController extends Controller
@@ -72,8 +73,10 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function traffic(GoogleAnalyticsRealtime $analytics)
+    public function traffic(GoogleAnalyticsRealtime $analytics, Request $request)
     {
-        return response()->json($analytics->dashboardData());
+        $validated = $request->validate(['range' => ['sometimes', 'string', 'in:30m,today,7d,30d,month']]);
+
+        return response()->json($analytics->dashboardData($validated['range'] ?? '30m'));
     }
 }

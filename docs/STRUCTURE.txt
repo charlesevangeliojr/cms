@@ -235,6 +235,10 @@ database-specific message for query failures.
 
 CONFIG
 ------
+The dashboard traffic chart supports range=30m, today, 7d, 30d, or month on its
+permission-protected refresh endpoint. GoogleAnalyticsRealtime loads minute,
+hourly or daily active-user buckets; public/backend/dashboard-traffic.js manages
+the range selector, chart labels, tooltips, loading states and stale responses.
 config/countries.php: full country list (ISO code, name, dial code) backing the
 contact country dropdown and its flag images.
 

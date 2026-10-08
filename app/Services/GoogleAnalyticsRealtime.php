@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -9,8 +11,11 @@ use Throwable;
 
 class GoogleAnalyticsRealtime
 {
-    public function dashboardData(): array
+    public function dashboardData(string $range = '30m'): array
     {
+        if (! in_array($range, ['30m', 'today', '7d', '30d', 'month'], true)) {
+            throw new \InvalidArgumentException('Unsupported traffic chart range.');
+        }
         $propertyId = config('services.google_analytics.property_id');
         $credentialFile = $this->credentialPath();
         $configured = filled($propertyId) && $credentialFile && is_file($credentialFile);
@@ -25,7 +30,7 @@ class GoogleAnalyticsRealtime
         ];
 
         if (! $configured) {
-            return $data;
+            return [...$data, 'chart' => $this->chartData($range, $data)];
         }
 
         // Cache the two reports independently: a historical-report failure must
@@ -57,7 +62,77 @@ class GoogleAnalyticsRealtime
             }
         });
 
-        return array_merge($data, $realtime, $monthly);
+        $data = array_merge($data, $realtime, $monthly);
+
+        return [...$data, 'chart' => $this->chartData($range, $data, (string) $propertyId, $credentialFile)];
+    }
+
+    private function chartData(string $range, array $data, ?string $propertyId = null, ?string $credentialFile = null): array
+    {
+        $now = now($data['timezone']);
+        $chart = [
+            'range' => $range, 'available' => false, 'updatedAt' => null,
+            'title' => $range === '30m' ? 'Active users per minute' : ($range === 'today' ? 'Active users per hour' : 'Active users per day'),
+            'points' => [],
+        ];
+        if ($range === '30m') {
+            $reportedAt = $data['realtimeUpdatedAt'] ? Carbon::parse($data['realtimeUpdatedAt'])->setTimezone($data['timezone']) : $now;
+            foreach ($data['minutes'] as $index => $users) {
+                $date = $reportedAt->copy()->startOfMinute()->subMinutes(29 - $index);
+                $chart['points'][] = ['label' => $date->format('M j, g:i A'), 'axis' => $date->format('g:i A'), 'users' => $users];
+            }
+
+            return [...$chart, 'available' => $data['available'], 'updatedAt' => $data['realtimeUpdatedAt']];
+        }
+
+        $start = match ($range) {
+            '7d' => $now->copy()->subDays(6)->startOfDay(),
+            '30d' => $now->copy()->subDays(29)->startOfDay(),
+            'month' => $now->copy()->startOfMonth(),
+            default => $now->copy()->startOfDay(),
+        };
+        $dimension = $range === 'today' ? 'dateHour' : 'date';
+        $buckets = [];
+        for ($date = $start->copy(); $date <= $now; $range === 'today' ? $date->addHour() : $date->addDay()) {
+            $buckets[$date->format($range === 'today' ? 'YmdH' : 'Ymd')] = [
+                'label' => $date->format($range === 'today' ? 'M j, g A' : 'M j, Y'),
+                'axis' => $date->format($range === 'today' ? 'g A' : 'M j'), 'users' => 0,
+            ];
+        }
+        $chart['points'] = array_values($buckets);
+        if (! $data['configured']) {
+            return $chart;
+        }
+        $key = sha1($propertyId.'|'.$credentialFile.'|'.$data['timezone'].'|'.$range.'|'.$start->toDateString().'|'.$now->format('Y-m-d-H'));
+        $report = Cache::remember('google-analytics.chart.v1.'.$key, 900, function () use ($propertyId, $credentialFile, $start, $now, $dimension) {
+            try {
+                $response = Http::withToken($this->accessToken($credentialFile))->timeout(8)->post(
+                    'https://analyticsdata.googleapis.com/v1beta/properties/'.rawurlencode($propertyId).':runReport',
+                    [
+                        'dateRanges' => [['startDate' => $start->toDateString(), 'endDate' => $now->toDateString()]],
+                        'dimensions' => [['name' => $dimension]],
+                        'metrics' => [['name' => 'activeUsers']],
+                        'orderBys' => [['dimension' => ['dimensionName' => $dimension]]],
+                        'limit' => '100',
+                    ]
+                );
+                $response->throw();
+
+                return ['available' => true, 'rows' => $response->json('rows', []), 'updatedAt' => now()->toIso8601String()];
+            } catch (Throwable $exception) {
+                $this->logReportFailure('chart', $exception);
+
+                return ['available' => false, 'rows' => [], 'updatedAt' => null];
+            }
+        });
+        foreach ($report['rows'] as $row) {
+            $bucket = $row['dimensionValues'][0]['value'] ?? '';
+            if (isset($buckets[$bucket])) {
+                $buckets[$bucket]['users'] = max(0, (int) ($row['metricValues'][0]['value'] ?? 0));
+            }
+        }
+
+        return [...$chart, 'points' => array_values($buckets), 'available' => $report['available'], 'updatedAt' => $report['updatedAt']];
     }
 
     private function realtimeReport(string $propertyId, string $token): array
@@ -154,7 +229,7 @@ class GoogleAnalyticsRealtime
     private function logReportFailure(string $report, Throwable $exception): void
     {
         $context = ['exception' => $exception::class];
-        if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+        if ($exception instanceof RequestException) {
             $context['http_status'] = $exception->response->status();
             $context['google_message'] = $exception->response->json('error.message');
         } else {

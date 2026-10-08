@@ -63,3 +63,15 @@ The browser refreshes through a same-origin dashboard endpoint. Temporary refres
 failures preserve the last counts and show **Update delayed · retrying**. Requests
 retry after 10 seconds, then back off up to one minute; successful refreshes restore
 the Live status. Polling stops when the session expires or dashboard access is lost.
+
+The bar chart's View dropdown offers Last 30 minutes (minute bars), Today (hourly
+bars through the current hour), Last 7 days, Last 30 days, and This month (daily
+bars through today). Rolling day ranges include today. The three summary counts
+keep their original time windows when the chart selection changes.
+Historical charts use the Data API's activeUsers metric with dateHour or date
+dimensions, following [Google's report schema](https://developers.google.com/analytics/devguides/reporting/data/v1/api-schema).
+They are cached independently for 15 minutes. The chart shows missing hours/days
+as zero only after a successful report, and displays unavailable when the report
+fails. Recent hourly/daily data may need 24-48 hours to be fully processed.
+GET /admin/dashboard/traffic accepts range=30m, today, 7d, 30d, or month; other
+values are rejected. Selection changes load immediately and ignore stale responses.

@@ -179,4 +179,103 @@ class DashboardTrafficTest extends TestCase
                 ->assertSee('data-endpoint="/admin/dashboard/traffic"', false);
         }
     }
+
+    public function test_daily_chart_has_ordered_buckets_and_zeros_for_missing_dates(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-08 13:30:00', 'Asia/Manila'));
+        $this->configure();
+        Http::fake(function ($request) {
+            if (str_ends_with($request->url(), ':runReport') && isset($request['dimensions'])) {
+                return Http::response(['rows' => [
+                    ['dimensionValues' => [['value' => '20261008']], 'metricValues' => [['value' => '5']]],
+                    ['dimensionValues' => [['value' => '20261002']], 'metricValues' => [['value' => '2']]],
+                    ['dimensionValues' => [['value' => '20260901']], 'metricValues' => [['value' => '99']]],
+                ]]);
+            }
+
+            return Http::response(['rows' => []]);
+        });
+        $chart = app(GoogleAnalyticsRealtime::class)->dashboardData('7d')['chart'];
+        $this->assertTrue($chart['available']);
+        $this->assertSame('7d', $chart['range']);
+        $this->assertSame('Active users per day', $chart['title']);
+        $this->assertCount(7, $chart['points']);
+        $this->assertSame([2, 0, 0, 0, 0, 0, 5], array_column($chart['points'], 'users'));
+        $this->assertSame('Oct 2, 2026', $chart['points'][0]['label']);
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), ':runReport')
+            && ($request['dimensions'][0]['name'] ?? null) === 'date'
+            && $request['dateRanges'][0] === ['startDate' => '2026-10-02', 'endDate' => '2026-10-08']
+            && $request['metrics'][0]['name'] === 'activeUsers');
+        Http::assertSentCount(5);
+        app(GoogleAnalyticsRealtime::class)->dashboardData('7d');
+        Http::assertSentCount(5);
+        app(GoogleAnalyticsRealtime::class)->dashboardData('30d');
+        Http::assertSentCount(6);
+    }
+
+    public function test_today_chart_uses_hours_in_the_reporting_timezone(): void
+    {
+        $this->travelTo(Carbon::parse('2026-09-30 16:30:00', 'UTC'));
+        $this->configure();
+        Http::fake(function ($request) {
+            if (str_ends_with($request->url(), ':runReport') && isset($request['dimensions'])) {
+                return Http::response(['rows' => [
+                    ['dimensionValues' => [['value' => '2026100100']], 'metricValues' => [['value' => '4']]],
+                ]]);
+            }
+
+            return Http::response(['rows' => []]);
+        });
+        $chart = app(GoogleAnalyticsRealtime::class)->dashboardData('today')['chart'];
+        $this->assertCount(1, $chart['points']);
+        $this->assertSame(4, $chart['points'][0]['users']);
+        $this->assertSame('Oct 1, 12 AM', $chart['points'][0]['label']);
+        Http::assertSent(fn ($request) => ($request['dimensions'][0]['name'] ?? null) === 'dateHour'
+            && $request['dateRanges'][0] === ['startDate' => '2026-10-01', 'endDate' => '2026-10-01']);
+    }
+
+    public function test_day_and_month_ranges_do_not_include_future_dates(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-08 13:30:00', 'Asia/Manila'));
+        $service = app(GoogleAnalyticsRealtime::class);
+        $rolling = $service->dashboardData('30d')['chart'];
+        $month = $service->dashboardData('month')['chart'];
+        $this->assertCount(30, $rolling['points']);
+        $this->assertSame('Sep 9, 2026', $rolling['points'][0]['label']);
+        $this->assertSame('Oct 8, 2026', $rolling['points'][29]['label']);
+        $this->assertCount(8, $month['points']);
+        $this->assertSame('Oct 1, 2026', $month['points'][0]['label']);
+        $this->assertFalse($rolling['available']);
+        Http::assertNothingSent();
+    }
+
+    public function test_historical_chart_failure_does_not_hide_summary_counts(): void
+    {
+        $this->configure();
+        Http::fake(function ($request) {
+            if (str_ends_with($request->url(), ':runReport') && isset($request['dimensions'])) {
+                return Http::response([], 503);
+            }
+
+            return Http::response(['rows' => [['metricValues' => [['value' => '3']]]]]);
+        });
+        $data = app(GoogleAnalyticsRealtime::class)->dashboardData('7d');
+        $this->assertTrue($data['available']);
+        $this->assertTrue($data['monthlyAvailable']);
+        $this->assertSame(3, $data['active30m']);
+        $this->assertFalse($data['chart']['available']);
+    }
+
+    public function test_dropdown_and_refresh_endpoint_support_only_allowed_ranges(): void
+    {
+        $this->actingAs($this->admin())->get(route('dashboard'))->assertOk()
+            ->assertSee('data-traffic-range', false)->assertSee('Last 7 days')->assertSee('This month');
+        foreach (['30m', 'today', '7d', '30d', 'month'] as $range) {
+            $this->getJson(route('dashboard.traffic', ['range' => $range]))
+                ->assertOk()->assertJsonPath('chart.range', $range)->assertJsonPath('chart.available', false);
+        }
+        $this->getJson(route('dashboard.traffic', ['range' => 'invalid']))->assertUnprocessable()->assertJsonValidationErrors('range');
+        $this->getJson(route('dashboard.traffic', ['range' => ['7d']]))->assertUnprocessable();
+        Http::assertNothingSent();
+    }
 }
