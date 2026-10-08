@@ -1,0 +1,39 @@
+@extends('backend.layouts.sidebar')
+@section('title', 'Blog Posts')
+@section('content')
+<div class="space-y-6">
+    <div class="flex flex-wrap items-center justify-between gap-4"><div><h2 class="text-2xl font-bold">Blog posts</h2><p class="mt-1 text-sm text-gray-500">Share stories, news, and updates with your readers.</p></div>@if(auth()->user()->canAccess('blogs', 'add'))<a href="{{ route('blogs.create') }}" class="inline-flex items-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500">Add blog post</a>@endif</div>
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <form id="blog-filters" method="GET" action="{{ route('blogs.index') }}" class="flex flex-wrap items-center gap-3 border-b border-gray-100 p-5"><label for="blog-search" class="sr-only">Search posts</label><input id="blog-search" name="q" value="{{ $search }}" placeholder="Search blog posts" autocomplete="off" oninput="scheduleBlogSearch(this)" class="min-w-0 flex-1 rounded-xl border border-gray-300 px-3 py-2 text-sm"><label for="blog-status" class="sr-only">Visibility</label><select id="blog-status" name="status" onchange="submitBlogStatus(this)" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm"><option value="">All visibility</option><option value="visible" @selected($status === 'visible')>Visible</option><option value="hidden" @selected($status === 'hidden')>Hidden</option></select><label for="blog-from" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">From<input id="blog-from" type="date" name="from" value="{{ $from }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal"></label><label for="blog-to" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">To<input id="blog-to" type="date" name="to" value="{{ $to }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal"></label>@if($search || $status || $dateFilter)<a href="{{ route('blogs.index') }}" class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100">Clear</a>@endif</form>
+        <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="border-b border-gray-100 bg-gray-50 text-xs uppercase tracking-wide text-gray-500"><tr><th class="px-5 py-4">Post</th><th class="px-5 py-4">Visibility</th><th class="px-5 py-4">Blog / Author</th><th class="px-5 py-4">Updated</th><th class="px-5 py-4 text-right">Actions</th></tr></thead><tbody class="divide-y divide-gray-100">
+            @forelse($posts as $post)<tr><td class="px-5 py-4"><div class="flex min-w-48 items-center gap-3">@if($post->image_url)<img src="{{ $post->image_url }}" alt="" class="h-12 w-16 rounded-lg object-cover">@else<div class="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-indigo-50 font-bold text-indigo-400">Aa</div>@endif<div><p class="font-semibold text-gray-900">{{ $post->title }}</p><p class="mt-1 text-xs text-gray-500">{{ \Illuminate\Support\Str::limit($post->excerpt, 65) }}</p></div></div></td><td class="px-5 py-4"><span class="rounded-full px-2.5 py-1 text-xs font-medium {{ $post->is_visible ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">{{ $post->is_visible ? 'Visible' : 'Hidden' }}</span></td><td class="px-5 py-4"><p>{{ $post->category->name }}</p><p class="mt-1 text-xs text-gray-500">{{ $post->author }}</p></td><td class="whitespace-nowrap px-5 py-4 text-gray-500">{{ $post->updated_at->format('M j, Y') }}</td><td class="px-5 py-4"><div class="flex justify-end gap-2"><a href="{{ route('blogs.pdf', $post) }}" title="Download PDF" class="inline-flex h-8 min-w-[76px] items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"><svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625A3.375 3.375 0 0 0 16.125 8.25h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5A3.375 3.375 0 0 0 10.125 2.25H6.75A2.25 2.25 0 0 0 4.5 4.5v15A2.25 2.25 0 0 0 6.75 21.75h10.5A2.25 2.25 0 0 0 19.5 19.5v-2.25M12 12v7.5m0 0 3-3m-3 3-3-3"/></svg>PDF</a>@if(auth()->user()->canAccess('blogs', 'edit'))<a href="{{ route('blogs.edit', $post) }}" title="Edit blog post" class="inline-flex h-8 min-w-[76px] items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-3 text-xs font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50"><svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>Edit</a>@endif @if(auth()->user()->canAccess('blogs', 'delete'))<form method="POST" action="{{ route('blogs.destroy', $post) }}" data-confirm="Delete this blog post?" data-turbo="false" class="inline-flex">@csrf @method('DELETE')<button type="submit" title="Delete blog post" class="inline-flex h-8 min-w-[76px] items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-white px-3 text-xs font-semibold text-rose-600 shadow-sm transition hover:bg-rose-50"><svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21a48.11 48.11 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.96 51.96 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.67 48.67 0 0 0-7.5 0"/><path stroke-linecap="round" stroke-linejoin="round" d="M4.772 5.79 5.86 19.673A2.25 2.25 0 0 0 8.104 21.75h7.812a2.25 2.25 0 0 0 2.244-2.077L19.228 5.79"/></svg>Delete</button></form>@endif</div></td></tr>
+            @empty<tr><td colspan="5" class="px-6 py-16 text-center"><p class="text-lg font-semibold">{{ $search || $status ? 'No matching posts' : 'Your stories start here' }}</p><p class="mt-2 text-gray-500">{{ $search || $status ? 'Try a different search or visibility filter.' : 'Create your first blog post to share it with your audience.' }}</p></td></tr>@endforelse
+        </tbody></table></div>
+        @if($posts->hasPages())<div class="border-t border-gray-100 p-5">{{ $posts->links() }}</div>@endif
+    </div>
+</div>
+<script>
+let blogSearchTimer;
+function scheduleBlogSearch(input) {
+    clearTimeout(blogSearchTimer);
+    sessionStorage.setItem('blog-search-focus', '1');
+    blogSearchTimer = setTimeout(() => input.form.requestSubmit(), 450);
+}
+function submitBlogStatus(select) {
+    clearTimeout(blogSearchTimer);
+    select.form.requestSubmit();
+}
+function restoreBlogSearchFocus() {
+    if (sessionStorage.getItem('blog-search-focus') !== '1') return;
+    sessionStorage.removeItem('blog-search-focus');
+    const input = document.getElementById('blog-search');
+    input?.focus();
+    input?.setSelectionRange(input.value.length, input.value.length);
+}
+if (!window.blogSearchFocusListenerAdded) {
+    window.blogSearchFocusListenerAdded = true;
+    document.addEventListener('turbo:load', restoreBlogSearchFocus);
+}
+restoreBlogSearchFocus();
+</script>
+@endsection

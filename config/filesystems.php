@@ -30,6 +30,22 @@ return [
 
     'disks' => [
 
+        'metadata' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/metadata'),
+            'url' => env('APP_URL').'/uploads/metadata',
+            'visibility' => 'public',
+            'throw' => true,
+        ],
+
+        'blogs' => [
+            'driver' => 'local',
+            'root' => public_path('uploads/blogs'),
+            'url' => env('APP_URL').'/uploads/blogs',
+            'visibility' => 'public',
+            'throw' => true,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

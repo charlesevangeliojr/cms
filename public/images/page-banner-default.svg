@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="300" viewBox="0 0 1600 300" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111B45"/>
+      <stop offset=".52" stop-color="#263A78"/>
+      <stop offset="1" stop-color="#087E8B"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="990" y1="0" x2="1450" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A5F3FC" stop-opacity=".44"/>
+      <stop offset="1" stop-color="#818CF8" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#fff" fill-opacity=".13"/>
+    </pattern>
+  </defs>
+  <path fill="url(#bg)" d="M0 0h1600v300H0z"/>
+  <path fill="url(#dots)" d="M0 0h1600v300H0z"/>
+  <circle cx="1270" cy="148" r="270" fill="url(#glow)"/>
+  <path d="M1065 300c120-84 175-192 320-196 89-2 148 41 215 92v104h-535Z" fill="#A5F3FC" fill-opacity=".08"/>
+  <path d="M1228 300c99-70 182-128 278-128 33 0 65 7 94 20v108h-372Z" fill="#fff" fill-opacity=".06"/>
+  <path d="M0 299.5h1600" stroke="#fff" stroke-opacity=".12"/>
+</svg>

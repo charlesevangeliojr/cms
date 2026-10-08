@@ -18,27 +18,53 @@
 
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
-            <h3 class="text-base font-semibold text-gray-900">All Subscribers</h3>
-            <form method="GET" action="{{ route('newsletters.index') }}" class="flex flex-col gap-2 sm:flex-row" data-turbo="false">
+            <h3 class="text-base font-semibold text-gray-900">All Subscribers <span class="text-gray-500">({{ $totalSubscribers }})</span></h3>
+            <form method="GET" action="{{ route('newsletters.index') }}" class="flex flex-col gap-2 sm:flex-row sm:flex-wrap" data-turbo="false">
                 <label for="newsletter-search" class="sr-only">Search subscribers</label><input id="newsletter-search" type="search" name="q" value="{{ $search }}" placeholder="Search subscribers..."
-                       class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                <label for="newsletter-status" class="sr-only">Subscriber status</label><select id="newsletter-status" name="status" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                       oninput="scheduleNewsletterSearch(this)" class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <label for="newsletter-status" class="sr-only">Subscriber status</label><select id="newsletter-status" name="status" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="">All statuses</option>
                     <option value="active" @selected($status === 'active')>Active</option>
                     <option value="inactive" @selected($status === 'inactive')>Inactive</option>
                 </select>
-                <button type="submit" class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700">Apply filters</button>
-                @if ($search !== '' || $status !== null)
-                    <a href="{{ route('newsletters.index') }}" class="self-center text-sm font-medium text-gray-500 hover:text-gray-800">Clear</a>
+                <label for="newsletter-from" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">From
+                    <input id="newsletter-from" type="date" name="from" value="{{ $from }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                </label>
+                <label for="newsletter-to" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">To
+                    <input id="newsletter-to" type="date" name="to" value="{{ $to }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                </label>
+                <a id="newsletter-export-link" href="{{ route('newsletters.export', request()->query()) }}" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Export to .xls</a>
+                @if ($search !== '' || $status !== null || $dateFilter)
+                    <a href="{{ route('newsletters.index') }}" class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100">Clear</a>
                 @endif
             </form>
         </div>
 
         @if ($subscribers->count())
+            <form id="newsletter-bulk-form" method="POST" action="{{ route('newsletters.bulk') }}" data-turbo="false" class="flex items-center gap-3 border-b border-gray-200 px-6 py-3">
+                @csrf
+                <div class="relative">
+                    <button id="newsletter-actions-button" type="button" onclick="toggleNewsletterActions()" disabled aria-expanded="false" class="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                        Actions <span id="newsletter-selected-count" class="rounded-full bg-white/20 px-2 py-0.5 text-xs">0</span>
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div id="newsletter-actions-menu" class="absolute left-0 top-full z-20 mt-2 hidden min-w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                        @if ($canEdit)
+                            <button type="submit" name="action" value="active" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Mark as active</button>
+                            <button type="submit" name="action" value="inactive" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Mark as inactive</button>
+                        @endif
+                        @if ($canDelete)
+                            <button type="submit" name="action" value="delete" data-confirm="Delete the selected subscribers? This cannot be undone." class="block w-full px-4 py-2 text-left text-sm text-rose-600 hover:bg-rose-50">Delete selected</button>
+                        @endif
+                        <button type="button" onclick="exportSelectedSubscribers()" class="block w-full px-4 py-2 text-left text-sm text-emerald-700 hover:bg-emerald-50">Export selected</button>
+                    </div>
+                </div>
+            </form>
             <div class="overflow-x-auto">
                 <table class="admin-banner-table min-w-[720px] w-full text-left text-sm text-gray-600">
                     <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                         <tr>
+                            <th class="px-4 py-3 text-center"><label class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-xs font-semibold normal-case text-gray-600"><input id="newsletter-select-all" type="checkbox" aria-label="Select all subscribers" onchange="toggleAllSubscribers(this)" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"> All</label></th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Subscriber</th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Status</th>
                             <th class="px-6 py-3 text-right font-semibold whitespace-nowrap">Actions</th>
@@ -47,6 +73,7 @@
                     <tbody class="divide-y divide-gray-200 bg-white">
                         @foreach ($subscribers as $subscriber)
                             <tr class="transition hover:bg-gray-50/80">
+                                <td class="px-4 py-4 text-center align-middle"><input type="checkbox" class="newsletter-select rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" name="ids[]" value="{{ $subscriber->id }}" form="newsletter-bulk-form" aria-label="Select {{ $subscriber->email }}"></td>
                                 <td class="px-6 py-4 align-middle">
                                     <p class="font-semibold text-gray-900">{{ $subscriber->email }}</p>
                                     <p class="text-xs text-gray-400">
@@ -108,7 +135,7 @@
             <div class="px-6 py-12 text-center">
                 <p class="font-semibold text-gray-700">No subscribers found</p>
                 <p class="mt-1 text-sm text-gray-400">
-                    @if ($search !== '' || $status !== null)
+                    @if ($search !== '' || $status !== null || $dateFilter)
                         Try changing or clearing the current filters.
                     @else
                         New newsletter signups will appear here.
@@ -118,4 +145,57 @@
         @endif
     </div>
 </div>
+<script>
+let newsletterSearchTimer;
+function scheduleNewsletterSearch(input) {
+    clearTimeout(newsletterSearchTimer);
+    sessionStorage.setItem('newsletter-search-focus', '1');
+    newsletterSearchTimer = setTimeout(() => input.form.requestSubmit(), 500);
+}
+if (sessionStorage.getItem('newsletter-search-focus') === '1') {
+    sessionStorage.removeItem('newsletter-search-focus');
+    const input = document.getElementById('newsletter-search');
+    input?.focus();
+    input?.setSelectionRange(input.value.length, input.value.length);
+}
+function updateNewsletterSelection() {
+    const checkboxes = [...document.querySelectorAll('.newsletter-select')];
+    const selected = checkboxes.filter((checkbox) => checkbox.checked).length;
+    document.getElementById('newsletter-selected-count').textContent = selected;
+    document.getElementById('newsletter-actions-button').disabled = selected === 0;
+    const all = document.getElementById('newsletter-select-all');
+    all.checked = checkboxes.length > 0 && selected === checkboxes.length;
+    all.indeterminate = selected > 0 && selected < checkboxes.length;
+}
+function toggleAllSubscribers(master) {
+    document.querySelectorAll('.newsletter-select').forEach((checkbox) => checkbox.checked = master.checked);
+    updateNewsletterSelection();
+}
+function toggleNewsletterActions() {
+    const menu = document.getElementById('newsletter-actions-menu');
+    const button = document.getElementById('newsletter-actions-button');
+    const open = menu.classList.toggle('hidden') === false;
+    button.setAttribute('aria-expanded', String(open));
+}
+function exportSelectedSubscribers() {
+    const ids = [...document.querySelectorAll('.newsletter-select:checked')].map((checkbox) => checkbox.value);
+    if (!ids.length) {
+        window.location.href = document.getElementById('newsletter-export-link').href;
+        return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.delete('ids[]');
+    ids.forEach((id) => params.append('ids[]', id));
+    window.location.href = `{{ route('newsletters.export') }}?${params.toString()}`;
+}
+document.querySelectorAll('.newsletter-select').forEach((checkbox) => checkbox.addEventListener('change', updateNewsletterSelection));
+document.addEventListener('click', (event) => {
+    const menu = document.getElementById('newsletter-actions-menu');
+    const button = document.getElementById('newsletter-actions-button');
+    if (menu && button && !menu.contains(event.target) && !button.contains(event.target)) {
+        menu.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+    }
+});
+</script>
 @endsection

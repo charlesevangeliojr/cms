@@ -1,0 +1,14 @@
+.blog-editor-shell { overflow: hidden; border: 1px solid #d1d5db; border-radius: 10px; }
+.blog-content-source { min-height: 320px; width: 100%; padding: 18px; color: #1f2937; font-size: 15px; line-height: 1.75; overflow-wrap: anywhere; }
+.blog-editor-shell .ck-editor { width: 100%; }
+.blog-editor-shell .ck.ck-toolbar { flex-wrap: wrap; }
+.blog-editor-shell .ck-editor__editable_inline { min-height: 320px; padding: 18px; }
+.blog-editor-shell .ck.ck-editor__editable:not(.ck-focused) { border-color: #d1d5db; }
+.blog-editor-shell .ck.ck-editor__editable.ck-focused { border-color: #818cf8; box-shadow: 0 0 0 1px #818cf8; }
+.blog-image-upload { border: 2px dashed #cbd5e1; border-radius: 14px; padding: 24px 16px; text-align: center; background: #f8fafc; transition: border-color .15s ease, background-color .15s ease; }
+.blog-image-upload:hover, .blog-image-upload:focus-within { border-color: #818cf8; background: #f5f3ff; }
+.blog-image-upload.is-dragging { border-color: #4f46e5; background: #eef2ff; }
+.blog-image-preview { aspect-ratio: 16 / 9; max-height: 240px; background: #e2e8f0; }
+.blog-thumbnail-preview { aspect-ratio: 1200 / 630; }
+.blog-editor-shell .ck-content figure.table { overflow-x: auto; }
+@media(max-width: 640px) { .blog-content-source, .blog-editor-shell .ck-editor__editable_inline { min-height: 260px; } }

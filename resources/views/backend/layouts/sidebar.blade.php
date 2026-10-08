@@ -8,7 +8,7 @@
 
     <title>@yield('title', 'Dashboard') — CMS</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('images/cms-logo.png') }}">
+    <link rel="icon" href="{{ asset(\App\Models\SiteMetadata::current()->favicon ?: 'images/cms-logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -33,6 +33,15 @@
         .admin-workspace :is(a, button, input, select, textarea):focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
         .admin-workspace main :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select) { min-height: 44px; }
         .admin-workspace main :is(input, select, textarea) { max-width: 100%; }
+        .admin-workspace main select:not([multiple]):not([size]) {
+            -webkit-appearance: none;
+            appearance: none;
+            padding-right: 2.5rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right .875rem center;
+            background-size: 1rem 1rem;
+        }
         .admin-workspace main .text-gray-400 { color: #64748b; }
         .admin-workspace main .rounded-xl { border-radius: 16px; }
         .admin-workspace main .shadow-sm { box-shadow: 0 3px 16px rgb(15 23 42 / 4%); }
@@ -130,7 +139,7 @@
         </div>
     </div>
 
-    @include('backend.partials.notifications')
+    @include('shared.notifications')
 
     <script>
         function toggleAdminSidebar(open) {

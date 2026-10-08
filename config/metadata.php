@@ -10,8 +10,7 @@ return [
         'site_name' => env('APP_NAME', 'CMS Template'),
         'title' => 'CMS Template',
         'description' => 'Explore the CMS Template website.',
-        'image' => 'images/cms-logo.png',
-        'robots' => 'index, follow',
+        'image' => 'images/meta-thumbnail.png',
     ],
 
     'pages' => [

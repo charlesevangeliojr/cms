@@ -3,10 +3,6 @@
 !/tests/Feature/
 !/tests/Unit/
 !/tests/TestCase.php
-/tests/Feature/*
-!/tests/Feature/ExampleTest.php
-/tests/Unit/*
-!/tests/Unit/ExampleTest.php
 /node_modules
 /public/build
 /public/hot
@@ -14,6 +10,7 @@
 /public/uploads/*
 !/public/uploads/.gitkeep
 /storage/*.key
+/storage/app/private/google-analytics-service-account.json
 /storage/pail
 /vendor
 .env

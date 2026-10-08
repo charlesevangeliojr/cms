@@ -2,7 +2,7 @@ CMS PROJECT - STRUCTURE & GUIDE
 ==============================
 Canonical location: docs/STRUCTURE.txt
 Related documents: README.md, docs/PROJECT_STANDARDS.md, docs/SECURITY.md
-Reviewed against the working tree: 2026-09-28
+Reviewed against the working tree: 2026-10-08
 
 REQUEST AND DATA FLOW
 ---------------------
@@ -10,8 +10,10 @@ Request -> routes/web.php -> middleware -> controller validation/models -> Blade
 bootstrap/app.php registers auth-related aliases and global SecurityHeaders.
 Public files can be served directly by the web server without Laravel middleware.
 
-Public Home/About pages use PageController template arrays for site/nav/page.
-Home additionally queries active Banner records and renders public submission forms.
+Public Home/About/Contact pages use PageController for site/navigation data.
+Public page title/content and page-banner placement live in banner_pages.
+Home uses the separate HomeBanner/HomeBannerImage tables. Contact submissions
+are sent from /contact; the home page links to that page.
 Admin modules use database records. Do not introduce mock admin records.
 
 APP/
@@ -22,9 +24,19 @@ app/Http/Controllers/
                            to a 15-minute cap) shown as a countdown that disables
                            the form; success clears it. Logins are capped at 3
                            active sessions per account (oldest kicked out).
-  PageController.php       Public Home/About content and active homepage banners.
+  PageController.php       Public Home/About/Contact pages and active banner queries.
   DashboardController.php  Counts/recent records for users, banners, contacts and
                            newsletters, uploaded file count and system information.
+                           Website traffic uses Services/GoogleAnalyticsRealtime:
+                           distinct active users over 30/5 minutes, per-minute bars,
+                           and month-to-date total users. Realtime is cached 60s;
+                           monthly reports 15 minutes, with independent error states.
+                           backend/partials/dashboard-traffic.blade.php and
+                           public/backend/dashboard-traffic.js render/refresh the panel.
+                           /admin/dashboard/traffic requires dashboard:view.
+                           Automatic polling checks but does not extend idle sessions.
+                           GA4_PROPERTY_ID and GA4_SERVICE_ACCOUNT_FILE are required;
+                           GA4_REPORTING_TIMEZONE must match the property timezone.
   UserController.php       Account CRUD, contact numbers, complete permission maps,
                            protected-account and delegated-access restrictions.
                            Create passes takenEmails for the live email-taken hint
@@ -34,7 +46,12 @@ app/Http/Controllers/
                            JSON requests return the created role (201) or a delete
                            confirmation; ordinary posts redirect to user creation.
   ProfileController.php    Current user's profile, password, contact and avatar.
-  BannerController.php     Banner CRUD and image storage/cropping.
+  HomeBannerController.php Home banner copy, visibility, images and order.
+  PageBannerController.php Page banner CRUD, placements and image uploads.
+  SiteMetadataController.php Admin editing of validated, database-backed Meta Tags.
+  BlogController.php       Permission-controlled post CRUD, safe rich text, images,
+                           visibility, excerpts, tags, and editable SEO fields.
+  PublicBlogController.php Published-only blog/category listings, articles and sitemap.
   ContactController.php    Public messages and permission-controlled admin inbox.
   NewsletterController.php Public subscriptions and admin subscriber management.
 
@@ -42,7 +59,12 @@ app/Models/
   User.php                 Authentication, role defaults, effective permissions,
                            protected/active flags, avatar URL and landing route.
   Role.php                 Database role definition and default permissions.
-  Banner.php, ContactMessage.php, NewsletterSubscriber.php: module records.
+  BannerPage.php           Public page title/content and page-banner placement.
+  HomeBanner.php, HomeBannerImage.php, PageBanner.php: separate banner records.
+  ContactMessage.php, NewsletterSubscriber.php: public form records.
+  BlogPost.php, BlogCategory.php: blog records, category relationship, publication scope.
+  SiteMetadata.php: singleton database-backed site SEO defaults.
+app/Support/BlogHtml.php rebuilds a safe HTML allowlist for saved and displayed articles.
 
 app/Http/Middleware/
   EnsureAccountIsActive.php Rechecks account state on authenticated admin requests.
@@ -59,6 +81,11 @@ See routes/web.php for exact bindings; php artisan route:list shows registered r
 Public:
   GET  /                         home
   GET  /about                    about
+  GET  /contact                  contact page with a page-banner slot and contact form
+  GET  /blogs                    blog.index
+  GET  /blogs/{category:slug}     blog.category
+  GET  /blogs/{category:slug}/{post} blog.show; published posts only
+  GET  /sitemap.xml              sitemap; public pages and published posts only
   POST /contact                  contact.store (public-submissions throttle)
   POST /newsletter               newsletter.store (same throttle bucket)
   GET  /admin/login              login
@@ -68,20 +95,40 @@ Public:
 
 Authenticated, active-account routes:
   GET  /admin/dashboard          dashboard; dashboard:view
+  GET/PUT /admin/seo-metadata    seo-metadata.index/update; metadata view/edit permissions
   GET  /admin/profile            profile.edit; own profile, no module permission
   PUT  /admin/profile            profile.update
   DELETE /admin/profile/avatar   profile.avatar.destroy
   POST /admin/roles              roles.store; controller requires Super Admin
   DELETE /admin/roles/{role}     roles.destroy; Super Admin; unused roles only
 
-For banners and users:
+For banners, blogs and users:
   GET    /admin/<module>              <module>.index; view
   GET    /admin/<module>/create       <module>.create; add
   POST   /admin/<module>              <module>.store; add
   GET    /admin/<module>/{record}/edit <module>.edit; edit
   PUT    /admin/<module>/{record}      <module>.update; edit
   DELETE /admin/<module>/{record}      <module>.destroy; delete
-  Parameter names are {banner} and {user}, respectively.
+  Parameter names are {banner}, {blog}, and {user}, respectively.
+
+BLOG WORKFLOW
+-------------
+resources/views/backend/blogs/: post list and shared create/edit form.
+public/backend/blog-editor.js and .css: rich text toolbar, safe paste, image preview,
+drag/drop upload, SEO preview and character counters. Textarea fallback without JS.
+resources/views/frontend/pages/blog.blade.php and blog-post.blade.php: responsive
+public listings and articles; titles, descriptions, canonical/social metadata and
+BlogPosting JSON-LD. Blog category links target the category filter position so
+switching between All stories and a category does not return visitors to the page top.
+frontend/pages/sitemap.blade.php renders the XML sitemap.
+Blog images use the blogs filesystem disk rooted at public/uploads/blogs.
+New posts default to Hidden; Visible publishes immediately. News/Updates/Guides
+are initial database-backed categories. Changing category/handle changes the URL.
+Apply new schema with php artisan migrate (never rebuild a populated database).
+The migration grants the new module to Super Admin role defaults and existing
+Super Admin accounts whose custom permission matrix was entirely allowed.
+Other custom permissions stay unchanged; access can be granted in User Management.
+Set APP_URL to the live HTTPS domain and submit /sitemap.xml in Search Console.
 
 For contacts and newsletters:
   GET    /admin/<module>          <module>.index; view
@@ -95,12 +142,13 @@ Legacy redirects: /home -> / (301); /login -> /admin/login and
 VIEWS AND ACCOUNT WORKFLOWS
 --------------------------
 resources/views/frontend/
-  layouts/app.blade.php: public shell; partials/header and footer; pages/home
-  and about; sections/features and stats. PageController supplies site/nav/page;
-  home also receives banners. Keep queries out of Blade.
+  layouts/app.blade.php: public shell, page banner lookup and breadcrumb data.
+  pages/: home, about, contact, blog, blog-post and sitemap route views.
+  partials/: public-only fragments, including the shared Contact page form.
+  PageController supplies public page data; keep content queries out of Blade.
   sections/hero.blade.php: full-width active-banner carousel with manual arrows,
   indicators and keyboard navigation; a welcome hero when no banners are active.
-  Home places its introduction and standalone Contact Us form below the hero.
+  Home places its introduction below the hero; Contact Us has its own page/banner.
   The shared public footer contains the newsletter subscription form.
   Header centers desktop navigation between the brand and Contact Us action,
   with a native mobile menu. Public colors match the slate/indigo login theme.
@@ -111,13 +159,8 @@ resources/views/backend/
   the password eye toggle with pop animation, live password/name/email hints,
   country-code dropdown behavior and numeric contact input filtering.
   partials/sidebar.blade.php: module navigation.
-  partials/notifications.blade.php: shared top toasts for success/error/info and
-  validation summaries. Toasts pop in at the top, show a countdown bar and
-  auto-dismiss with no buttons (click dismisses early). The centered modal is
-  kept only for destructive confirmations. Forms opt in with data-confirm.
-  dashboard.blade.php: DashboardController's routed dashboard view. The welcome
-  hero carries no action buttons.
-  pages/dashboard.blade.php: alternate template, not the view returned by that route.
+  pages/dashboard.blade.php: DashboardController's routed dashboard view. The
+  welcome hero carries no action buttons.
   auth/login.blade.php: standalone two-panel login page (brand panel plus
   sign-in card) using public/images/cms-logo.png and login-background.png.
   Failed attempts show an escalating lockout countdown that disables the form.
@@ -131,7 +174,9 @@ resources/views/backend/
   calling roles.store / roles.destroy as JSON.
   profile/edit.blade.php: current user's profile and avatar crop interface, plus
   the same password eye toggles, hints and contact dropdown as user management.
-  banners/: self-contained create, edit and index views (no shared _form partial).
+  banners/home-banners and banners/page-banners: separate admin workflows.
+  metadata/index.blade.php: Meta Tags form with image uploads, live search/social previews,
+  character counts, keyword controls and read-only permission messaging.
   contacts/index.blade.php and newsletters/index.blade.php: module lists/actions.
   The contact status filter submits immediately on change.
 
@@ -166,10 +211,27 @@ mean false. Super Admin is a special authorization role, despite role data being
 stored in the database. Protected accounts cannot be deleted and remain active;
 only Super Admin can manage them. Delegated managers cannot manage greater access.
 
-resources/views/components/: shared buttons, cards, alerts, permission-denied UI.
+resources/views/components/: shared buttons, cards, alerts, permission-denied UI,
+and the reusable breadcrumb.
+resources/views/shared/notifications.blade.php: shared public/admin toast and
+confirmation-modal behavior; forms opt in to destructive confirmation with data-confirm.
+database/migrations/2026_10_08_000021_create_site_metadata_table.php: stores the
+site-wide SEO defaults separately from page and blog SEO records.
+database/migrations/2026_10_08_000022_add_sharing_fields_to_site_metadata_table.php:
+adds favicon, keywords, OG title and OG description to the existing settings.
+The Meta Tags form manages site name, homepage/default title and description,
+keywords, optional social title/description, favicon and social preview image.
+Search indexing is fixed to `index, follow`; it is not an editable setting.
+Page and article metadata may override these defaults. `SiteMetadata::current()`
+creates the singleton row from `config/metadata.php` defaults when no row exists.
+The current development database row is populated with Rweb CMS metadata.
+public/backend/metadata/settings.js: live previews, character counts, keyword controls
+and local upload previews.
+The metadata disk stores favicon (PNG/ICO, 1 MB) and OG image (JPG/PNG/WebP,
+2 MB) uploads under public/uploads/metadata/. Empty uploads preserve current files;
+successful replacements remove old managed files, and failed saves clean up new files.
 resources/views/errors/: full-page HTTP errors; the 500 page shows a
 database-specific message for query failures.
-resources/views/welcome.blade.php: Laravel reference template, not routed at /.
 
 CONFIG
 ------
@@ -182,29 +244,44 @@ public/ is the web root. public/frontend/ holds checked-in public assets.
 public/frontend/site.css and site.js style the public shell and initialize the
 banner carousel/mobile menu on normal loads and Turbo navigation (no build step).
 public/images/ holds checked-in brand assets (cms-logo.png, login-background.png).
-public/uploads/banners/ and public/uploads/avatars/ hold runtime uploads.
+public/uploads/home-banners/, public/uploads/page-banners/ and public/uploads/avatars/
+hold runtime uploads. public/images/page-banner-default.svg is the generated 16:3
+fallback for pages without an active Page Banner image.
 config/filesystems.php defines the corresponding disks and public URLs.
 Do not commit uploads or allow script execution in these directories.
 resources/css and resources/js contain source assets; current layouts use CDNs.
 There is no checked-in package.json or required npm build workflow.
 
-Migrations are a squashed baseline: users (with role_id FK, contact,
-avatar, active/protected flags), roles (Super Admin seed), banners,
-contact messages, newsletter subscribers, pages/privileges with
-role/user grant tables, plus Laravel cache/jobs tables.
+database/migrations/ contains individual current-schema migrations by table,
+plus Laravel's cache/jobs migrations. A new database gets the complete current
+schema from these migrations; historical upgrade migrations are kept in
+database/migrations/archive/ for reference and tests, not replayed for a new
+install. Existing databases are preserved: each create migration skips a table
+that already exists.
+`migrate:fresh` still drops every table, so use it only on a new/disposable DB.
+Point `.env` at a new database to keep the old database untouched.
+The current banner content is in `banner_pages`, Home/Page banner records are in
+their separate tables, and there is no `public_pages` table in the final schema.
 config/cms.php is the page/privilege registry; PagesAndPrivilegesSeeder syncs
 from it and grants Super Admin full access.
 database/factories/ contains test data factories.
-database/seeders/DatabaseSeeder.php currently creates/resets a development admin
-with fixed credentials: development only; unsafe to run on production accounts.
+database/seeders/DatabaseSeeder.php creates/resets a development admin with fixed
+credentials and seeds no demo blog, contact, or newsletter records: development only;
+unsafe to run on production accounts.
 storage/ holds runtime logs/cache/compiled views. vendor/ holds Composer packages.
 
 TESTS AND CHANGE RULES
 ---------------------
-tests/Feature/: account contacts, roles/defaults/inline creation, protected accounts,
-active sessions, permissions, banners, inbox/subscribers, dashboard, login lockout
-and session limits, error pages, notification modals and security.
-tests/Unit/: isolated checks including system metric formatting.
+tests/Feature/Account/: contact details, roles, permissions, login security and
+session enforcement.
+tests/Feature/Admin/: banners, contact/newsletter management, notifications and
+admin security.
+tests/Feature/Content/: blog editing and publishing.
+tests/Feature/Dashboard/: system status and Google Analytics reporting.
+tests/Feature/PublicSite/: Home/About/Contact and blog-facing behavior.
+tests/Feature/System/: database schema and error pages.
+tests/Unit/: isolated checks for PDF layout and system metric formatting. Obsolete
+framework Example tests have been removed.
 phpunit.xml uses an in-memory SQLite database for tests.
 Run commands and read known verification limits in README.md and docs/SECURITY.md.
 

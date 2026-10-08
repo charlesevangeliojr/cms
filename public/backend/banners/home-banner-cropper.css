@@ -1,0 +1,3 @@
+.home-banner-crop-stage { height: min(58vw, 420px); min-height: 220px; overflow: hidden; background: #111827; }
+.home-banner-crop-stage img { display: block; max-width: 100%; }
+[data-crop-editor] .cropper-container { max-width: 100%; }

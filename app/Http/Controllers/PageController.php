@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Banner;
+use App\Models\HomeBanner;
+use App\Models\PageBanner;
 
 class PageController extends Controller
 {
@@ -21,6 +22,7 @@ class PageController extends Controller
             'nav' => [
                 ['label' => 'Home', 'url' => '/'],
                 ['label' => 'About', 'url' => '/about'],
+                ['label' => 'Blog', 'url' => '/blogs'],
             ],
             'home' => [
                 'heading' => 'Home',
@@ -48,7 +50,8 @@ class PageController extends Controller
     public function home()
     {
         $data = $this->mockData();
-        $banners = Banner::where('is_active', true)->latest('id')->get();
+        $homeBanner = HomeBanner::where('is_active', true)->with(['images' => fn ($query) => $query->where('is_active', true)->with('banner')])->first();
+        $banners = $homeBanner?->images ?? collect();
 
         return view('frontend.pages.home', [
             'site' => $data['site'],
@@ -61,11 +64,31 @@ class PageController extends Controller
     public function about()
     {
         $data = $this->mockData();
+        $aboutPage = \App\Models\BannerPage::where('slug', 'about')->where('is_active', true)->firstOrFail();
+        $about = $data['about'];
+        $about['heading'] = $aboutPage->title ?: $aboutPage->name;
+        $about['text'] = $aboutPage->content ?? '';
+        $banners = PageBanner::where('is_active', true)->whereHas('page', fn ($query) => $query->where('slug', 'about'))->with('page')->latest('id')->get();
 
         return view('frontend.pages.about', [
             'site' => $data['site'],
             'nav' => $data['nav'],
-            'page' => $data['about'],
+            'page' => $about,
+            'banners' => $banners,
+        ]);
+    }
+
+    public function contact()
+    {
+        $data = $this->mockData();
+        $page = \App\Models\BannerPage::where('slug', 'contact')->where('is_active', true)->firstOrFail();
+        $banners = PageBanner::where('is_active', true)->whereHas('page', fn ($query) => $query->where('slug', 'contact'))->with('page')->latest('id')->get();
+
+        return view('frontend.pages.contact', [
+            'site' => $data['site'],
+            'nav' => $data['nav'],
+            'page' => $page,
+            'banners' => $banners,
         ]);
     }
 }

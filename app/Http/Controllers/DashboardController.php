@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Banner;
+use App\Models\HomeBannerImage;
+use App\Models\PageBanner;
 use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
+use App\Services\GoogleAnalyticsRealtime;
 use Illuminate\Support\Facades\File;
 
 class DashboardController extends Controller
@@ -13,14 +15,15 @@ class DashboardController extends Controller
     /**
      * Show the admin dashboard — latest at top for all lists.
      */
-    public function index()
+    public function index(GoogleAnalyticsRealtime $analytics)
     {
         $totalUsers = User::count();
         $recentUsers = User::with('role')->latest('id')->take(5)->get();
 
-        $totalBanners = Banner::count();
-        $activeBanners = Banner::where('is_active', true)->count();
-        $recentBanners = Banner::latest('id')->take(5)->get();
+        $totalBanners = HomeBannerImage::count() + PageBanner::count();
+        $activeBanners = HomeBannerImage::where('is_active', true)->count() + PageBanner::where('is_active', true)->count();
+        $recentBanners = HomeBannerImage::with('banner')->latest('id')->take(5)->get()
+            ->concat(PageBanner::latest('id')->take(5)->get())->sortByDesc('created_at')->take(5)->values();
 
         $totalContacts = ContactMessage::count();
         $unreadContacts = ContactMessage::where('is_read', false)->count();
@@ -45,7 +48,7 @@ class DashboardController extends Controller
             ['label' => 'About', 'url' => '/about'],
         ];
 
-        return view('backend.dashboard', [
+        return view('backend.pages.dashboard', [
             'totalUsers' => $totalUsers,
             'recentUsers' => $recentUsers,
             'totalBanners' => $totalBanners,
@@ -65,6 +68,12 @@ class DashboardController extends Controller
             'environment' => config('app.env'),
             'dbDriver' => config('database.default'),
             'timezone' => config('app.timezone'),
+            'analyticsRealtime' => $analytics->dashboardData(),
         ]);
+    }
+
+    public function traffic(GoogleAnalyticsRealtime $analytics)
+    {
+        return response()->json($analytics->dashboardData());
     }
 }

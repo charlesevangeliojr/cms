@@ -34,7 +34,10 @@ class SessionTimeout
             ]);
         }
 
-        $request->session()->put('last_seen', now()->getTimestamp());
+        // Automated dashboard polling must not keep an idle admin signed in.
+        if (! $request->routeIs('dashboard.traffic') || $lastSeen === 0) {
+            $request->session()->put('last_seen', now()->getTimestamp());
+        }
 
         return $next($request);
     }

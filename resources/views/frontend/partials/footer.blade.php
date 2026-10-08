@@ -7,10 +7,10 @@
             </a>
             <p>Stay connected. We'd love to hear from you.</p>
             <nav aria-label="Footer navigation">
-            @foreach (($nav ?? [['label' => 'Home', 'url' => '/'], ['label' => 'About', 'url' => '/about']]) as $item)
+            @foreach (($nav ?? [['label' => 'Home', 'url' => '/'], ['label' => 'About', 'url' => '/about'], ['label' => 'Contact Us', 'url' => '/contact']]) as $item)
                 <a href="{{ url($item['url']) }}">{{ $item['label'] }}</a>
             @endforeach
-            <a href="{{ route('home') }}#contact">Contact Us</a>
+            <a href="{{ route('contact') }}">Contact Us</a>
             <a href="{{ route('home') }}#newsletter">Newsletter</a>
             </nav>
         </div>

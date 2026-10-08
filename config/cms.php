@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\UserController;
@@ -47,10 +47,22 @@ return [
         'banners' => [
             'name' => 'Banner Management',
             'description' => 'Promotional banners and placements.',
-            'route' => 'banners.index',
+            'route' => 'home-banners.index',
             'icon' => 'banners',
-            'controller' => BannerController::class,
+        ],
+        'blogs' => [
+            'name' => 'Blog Posts',
+            'description' => 'Articles, publishing, and search engine listings.',
+            'route' => 'blogs.index',
+            'icon' => 'default',
+            'controller' => BlogController::class,
             'actions' => ['index', 'create', 'store', 'edit', 'update', 'destroy'],
+        ],
+        'metadata' => [
+            'name' => 'Meta Tags',
+            'description' => 'Default site titles, descriptions, and social sharing metadata.',
+            'route' => 'seo-metadata.index',
+            'icon' => 'tags',
         ],
         'users' => [
             'name' => 'User Management',

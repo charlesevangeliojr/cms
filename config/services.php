@@ -2,6 +2,13 @@
 
 return [
 
+    'google_analytics' => [
+        'measurement_id' => env('GA_MEASUREMENT_ID', 'G-H11E5E71R8'),
+        'property_id' => env('GA4_PROPERTY_ID'),
+        'reporting_timezone' => env('GA4_REPORTING_TIMEZONE', 'Asia/Manila'),
+        'service_account_file' => env('GA4_SERVICE_ACCOUNT_FILE', 'app/private/google-analytics-service-account.json'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

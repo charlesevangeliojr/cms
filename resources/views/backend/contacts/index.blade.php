@@ -18,27 +18,53 @@
 
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div class="flex flex-col gap-4 border-b border-gray-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
-            <h3 class="text-base font-semibold text-gray-900">All Messages</h3>
-            <form method="GET" action="{{ route('contacts.index') }}" class="flex flex-col gap-2 sm:flex-row" data-turbo="false">
+            <h3 class="text-base font-semibold text-gray-900">All Messages <span class="text-gray-500">({{ $totalMessages }})</span></h3>
+            <form method="GET" action="{{ route('contacts.index') }}" class="flex flex-col gap-2 sm:flex-row sm:flex-wrap" data-turbo="false">
                 <label for="contact-search" class="sr-only">Search messages</label><input id="contact-search" type="search" name="q" value="{{ $search }}" placeholder="Search messages..."
-                       class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                       oninput="scheduleContactSearch(this)" class="rounded-xl border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                 <label for="contact-status" class="sr-only">Message status</label><select id="contact-status" name="status" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="">All statuses</option>
                     <option value="unread" @selected($status === 'unread')>Unread</option>
                     <option value="read" @selected($status === 'read')>Read</option>
                 </select>
-                <button type="submit" class="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-700">Apply filters</button>
-                @if ($search !== '' || $status !== null)
-                    <a href="{{ route('contacts.index') }}" class="self-center text-sm font-medium text-gray-500 hover:text-gray-800">Clear</a>
+                <label for="contact-from" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">From
+                    <input id="contact-from" type="date" name="from" value="{{ $from }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                </label>
+                <label for="contact-to" class="inline-flex items-center gap-2 text-sm font-medium text-gray-600">To
+                    <input id="contact-to" type="date" name="to" value="{{ $to }}" onchange="this.form.requestSubmit()" class="rounded-xl border border-gray-300 px-3 py-2 text-sm font-normal focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                </label>
+                <a id="contact-export-link" href="{{ route('contacts.export', request()->query()) }}" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-center text-sm font-semibold text-emerald-700 hover:bg-emerald-100">Export to .xls</a>
+                @if ($search !== '' || $status !== null || $dateFilter)
+                    <a href="{{ route('contacts.index') }}" class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100">Clear</a>
                 @endif
             </form>
         </div>
 
         @if ($messages->count())
+            <form id="contact-bulk-form" method="POST" action="{{ route('contacts.bulk') }}" data-turbo="false" class="flex items-center gap-3 border-b border-gray-200 px-6 py-3">
+                @csrf
+                <div class="relative">
+                    <button id="contact-actions-button" type="button" onclick="toggleContactActions()" disabled aria-expanded="false" class="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-700 disabled:cursor-not-allowed disabled:bg-gray-300">
+                        Actions <span id="contact-selected-count" class="rounded-full bg-white/20 px-2 py-0.5 text-xs">0</span>
+                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div id="contact-actions-menu" class="absolute left-0 top-full z-20 mt-2 hidden min-w-48 overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-lg">
+                        @if ($canEdit)
+                            <button type="submit" name="action" value="read" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Mark as read</button>
+                            <button type="submit" name="action" value="unread" class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50">Mark as unread</button>
+                        @endif
+                        @if ($canDelete)
+                            <button type="submit" name="action" value="delete" data-confirm="Delete the selected messages? This cannot be undone." class="block w-full px-4 py-2 text-left text-sm text-rose-600 hover:bg-rose-50">Delete selected</button>
+                        @endif
+                        <button type="button" onclick="exportSelectedContacts()" class="block w-full px-4 py-2 text-left text-sm text-emerald-700 hover:bg-emerald-50">Export selected</button>
+                    </div>
+                </div>
+            </form>
             <div class="overflow-x-auto">
                 <table class="admin-banner-table min-w-[860px] w-full text-left text-sm text-gray-600">
                     <thead class="border-b border-gray-200 bg-gray-50 text-xs uppercase text-gray-500">
                         <tr>
+                            <th class="px-4 py-3 text-center"><label class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-xs font-semibold normal-case text-gray-600"><input id="contact-select-all" type="checkbox" aria-label="Select all messages" onchange="toggleAllContacts(this)" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"> All</label></th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Message</th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Contact Number</th>
                             <th class="px-6 py-3 font-semibold whitespace-nowrap">Subject</th>
@@ -49,6 +75,7 @@
                     <tbody class="divide-y divide-gray-200 bg-white">
                         @foreach ($messages as $message)
                             <tr class="transition hover:bg-gray-50/80" data-row-id="{{ $message->id }}">
+                                <td class="px-4 py-4 text-center align-middle"><input type="checkbox" class="contact-select rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" name="ids[]" value="{{ $message->id }}" form="contact-bulk-form" aria-label="Select {{ $message->name }}"></td>
                                 <td class="px-6 py-4 align-middle">
                                     <p class="font-semibold text-gray-900">{{ $message->name }}</p>
                                     <p class="text-xs text-gray-400">{{ $message->email }} · {{ $message->created_at?->format('M j, Y') }}</p>
@@ -182,6 +209,61 @@
 </div>
 
 <script>
+let contactSearchTimer;
+function scheduleContactSearch(input) {
+    clearTimeout(contactSearchTimer);
+    sessionStorage.setItem('contact-search-focus', '1');
+    contactSearchTimer = setTimeout(() => input.form.requestSubmit(), 500);
+}
+if (sessionStorage.getItem('contact-search-focus') === '1') {
+    sessionStorage.removeItem('contact-search-focus');
+    const searchInput = document.getElementById('contact-search');
+    searchInput?.focus();
+    searchInput?.setSelectionRange(searchInput.value.length, searchInput.value.length);
+}
+function exportSelectedContacts() {
+    const ids = [...document.querySelectorAll('.contact-select:checked')].map((checkbox) => checkbox.value);
+    if (!ids.length) {
+        window.location.href = document.getElementById('contact-export-link').href;
+        return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.delete('ids[]');
+    ids.forEach((id) => params.append('ids[]', id));
+    window.location.href = `{{ route('contacts.export') }}?${params.toString()}`;
+}
+function updateContactSelection() {
+    const checkboxes = [...document.querySelectorAll('.contact-select')];
+    const selected = checkboxes.filter((checkbox) => checkbox.checked).length;
+    const count = document.getElementById('contact-selected-count');
+    const button = document.getElementById('contact-actions-button');
+    if (count) count.textContent = selected;
+    if (button) button.disabled = selected === 0;
+    const selectAll = document.getElementById('contact-select-all');
+    if (selectAll) {
+        selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
+        selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
+    }
+}
+function toggleAllContacts(master) {
+    document.querySelectorAll('.contact-select').forEach((checkbox) => checkbox.checked = master.checked);
+    updateContactSelection();
+}
+function toggleContactActions() {
+    const menu = document.getElementById('contact-actions-menu');
+    const button = document.getElementById('contact-actions-button');
+    const open = menu.classList.toggle('hidden') === false;
+    button.setAttribute('aria-expanded', String(open));
+}
+document.querySelectorAll('.contact-select').forEach((checkbox) => checkbox.addEventListener('change', updateContactSelection));
+document.addEventListener('click', (event) => {
+    const menu = document.getElementById('contact-actions-menu');
+    const button = document.getElementById('contact-actions-button');
+    if (menu && button && !menu.contains(event.target) && !button.contains(event.target)) {
+        menu.classList.add('hidden');
+        button.setAttribute('aria-expanded', 'false');
+    }
+});
 function openContactModal(btn) {
     const name = btn.dataset.name || '';
     const email = btn.dataset.email || '';

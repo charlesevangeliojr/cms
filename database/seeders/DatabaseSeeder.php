@@ -39,5 +39,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        // Keep fresh installs free of demo content; create real content through
+        // the admin interface or invoke a dedicated sample seeder manually.
     }
 }

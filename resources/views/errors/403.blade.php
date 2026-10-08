@@ -16,7 +16,8 @@
         $actionUrl = $landingRouteName ? route($landingRouteName) : route('login');
         $actionLabel = match ($landingRouteName) {
             'dashboard' => 'Back to Dashboard',
-            'banners.index' => 'Back to Banners',
+            'home-banners.index' => 'Back to Home Banner',
+            'page-banners.index' => 'Back to Page Banners',
             'users.index' => 'Back to Users',
             default => $landingRouteName
                 ? 'Back to '.(collect(config('cms.pages', []))->firstWhere('route', $landingRouteName)['name'] ?? 'Dashboard')

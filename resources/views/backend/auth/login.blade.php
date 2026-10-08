@@ -729,7 +729,7 @@
 </main>
 
 
-@include('backend.partials.notifications')
+@include('shared.notifications')
 
 
 <script>

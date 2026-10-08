@@ -57,6 +57,12 @@ Rules:
 - Blade displays data; it does not query the database.
 - Shared markup belongs in components or partials.
 - Admin behavior must use real database records.
+- Blog content uses a server-side HTML allowlist on save and render. Public queries
+  require visible posts with a publication time at or before now. Hidden posts
+  must return 404 publicly and stay out of listings and the sitemap.
+- Blog metadata includes editable SEO title/description with content fallbacks,
+  canonical and social URLs, featured images and BlogPosting JSON-LD. Character
+  limits are editor guidance, not a guarantee of search engine display.
 - Do not introduce new admin mock arrays.
 
 ## 4. Folder responsibilities
@@ -86,7 +92,7 @@ Rules:
 - Every schema change needs a migration.
 - Use descriptive migration filenames.
 - Seed only initial structural data needed by the template.
-- Do not seed demo users, banners, or content records for production. The current DatabaseSeeder creates/resets a fixed development admin; this is a known development-only exception, not a production provisioning workflow.
+- Do not seed demo users, banners, or content records for production. The current DatabaseSeeder creates/resets a fixed development admin but does not seed demo blog, contact, or newsletter records; it is a development-only workflow, not production provisioning.
 - Factories are for tests and local development.
 
 ### `resources/views/`
@@ -95,7 +101,11 @@ Rules:
 - `backend/`: authenticated CMS pages.
 - `backend/layouts/`: shared admin shell.
 - `backend/<module>/`: one folder per module holding its own views (`index`, `create`, `edit`). Code that belongs to a module lives in that folder and in the module's controller; only truly shared markup goes in `backend/partials/` or `components/`. Do not scatter a module's views or logic across other folders.
-- `backend/partials/`: navigation, toasts, reusable page fragments.
+- `backend/partials/`: admin navigation and reusable admin-only fragments.
+- `frontend/pages/` and `frontend/partials/`: public route views and public-only fragments.
+- `shared/`: fragments used by both public and authenticated views, such as notifications.
+- Persist editable site settings in a focused table and validate them server-side;
+  render user-managed metadata with Blade escaping and allowlist values that affect directives or URLs.
 - `components/`: shared UI primitives.
 - `errors/`: full-page HTTP error screens.
 
@@ -142,7 +152,7 @@ Rules:
 
 - Register the page once in `config/cms.php` (`pages`: name, description, route, icon, controller, resource actions). Order sets sidebar and landing priority.
 - Sidebar, landing route, permission forms, role/user matrices, routes, and DB seeds all read that registry — no other list edits needed.
-- Still required per page: controller, views, dashboard card if wanted, and `php artisan migrate:fresh --seed` so `pages`/`privileges` rows and Super Admin grants exist.
+- Still required per page: controller, views, and dashboard card if wanted. Run `php artisan db:seed --class=PagesAndPrivilegesSeeder` to sync `pages`/`privileges` and Super Admin grants. `migrate:fresh` deletes all tables and is for new/disposable databases only; point `.env` at a new database to preserve existing application data.
 
 ## 6. Frontend and UX standards
 
@@ -213,7 +223,8 @@ A task is done only when all applicable items pass:
 - Provide a skip-to-content link and accessible names for navigation and filters.
 - Show action text alongside banner icons; convert banner table rows into stacked cards on mobile.
 - Only display create, edit, and delete actions when the account has the corresponding permission.
-- Use public/images/cms-logo.png for the sidebar logo, public header, login branding, and every page favicon.
+- Use public/images/cms-logo.png for the sidebar logo, public header, and login branding. Public pages and the admin workspace use the uploaded Meta Tags favicon, falling back to this logo.
+- Meta Tags manages the site name, homepage title/description, keyword list, optional social title/description, social preview image, and favicon. Search indexing is always `index, follow`. Page-specific search metadata and article social metadata take precedence; empty social fields fall back to the page's search metadata.
 - Keep interface copy focused on the user's task.
 
 ## 12. Basic security

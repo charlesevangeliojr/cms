@@ -23,19 +23,48 @@
             'newsletters' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />',
             'banners' => '<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />',
             'users' => '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />',
+            'tags' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3.25H5.25A2.25 2.25 0 0 0 3 5.5v4.318c0 .597.237 1.169.659 1.591l8.682 8.682a2.25 2.25 0 0 0 3.182 0l4.568-4.568a2.25 2.25 0 0 0 0-3.182l-8.682-8.682a2.25 2.25 0 0 0-1.591-.659Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.75h.008v.008H6.75V7.75Z"/>',
             'default' => '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />',
         ])
         @foreach (config('cms.pages', []) as $slug => $page)
             @php($routePattern = str_contains($page['route'], '.') ? \Illuminate\Support\Str::beforeLast($page['route'], '.').'.*' : $page['route'])
             @if (auth()->user()?->canAccess($slug, 'view'))
-            <a href="{{ route($page['route']) }}" aria-current="{{ request()->routeIs($routePattern) ? 'page' : 'false' }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium {{ request()->routeIs($routePattern) ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">{!! $navIcons[$page['icon']] ?? $navIcons['default'] !!}</svg>
-                {{ $page['name'] }}
-            </a>
+                @if ($slug === 'banners')
+                    @php($bannerMenuOpen = request()->routeIs('home-banners.*', 'page-banners.*'))
+                    <div>
+                        <button type="button" id="bannerPagesToggle" onclick="toggleBannerPages()" aria-expanded="{{ $bannerMenuOpen ? 'true' : 'false' }}" aria-controls="bannerPagesMenu"
+                                class="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium {{ $bannerMenuOpen ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                            <svg class="h-5 w-5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">{!! $navIcons['banners'] !!}</svg>
+                            <span class="flex-1">Banner Pages</span>
+                            <svg id="bannerPagesChevron" class="h-4 w-4 transition-transform {{ $bannerMenuOpen ? 'rotate-180' : '' }}" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.22 7.22a.75.75 0 0 1 1.06 0L10 10.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+                        </button>
+                        <div id="bannerPagesMenu" class="{{ $bannerMenuOpen ? '' : 'hidden' }} ml-5 mt-1 space-y-1 border-l border-gray-700 pl-3">
+                            <a href="{{ route('home-banners.index') }}" aria-current="{{ request()->routeIs('home-banners.*') ? 'page' : 'false' }}" class="flex min-h-12 w-full items-center justify-start rounded-xl px-3 py-2 text-left text-sm {{ request()->routeIs('home-banners.*') ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">Home banner</a>
+                            <a href="{{ route('page-banners.index') }}" aria-current="{{ request()->routeIs('page-banners.*') ? 'page' : 'false' }}" class="flex min-h-12 w-full items-center justify-start rounded-xl px-3 py-2 text-left text-sm {{ request()->routeIs('page-banners.*') ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">Pages banner</a>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ route($page['route']) }}" aria-current="{{ request()->routeIs($routePattern) ? 'page' : 'false' }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium {{ request()->routeIs($routePattern) ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">{!! $navIcons[$page['icon']] ?? $navIcons['default'] !!}</svg>
+                        {{ $page['name'] }}
+                    </a>
+                @endif
             @endif
         @endforeach
     </nav>
+
+    <script>
+        function toggleBannerPages() {
+            const menu = document.getElementById('bannerPagesMenu');
+            const button = document.getElementById('bannerPagesToggle');
+            const chevron = document.getElementById('bannerPagesChevron');
+            if (!menu || !button) return;
+            const open = menu.classList.toggle('hidden') === false;
+            button.setAttribute('aria-expanded', String(open));
+            chevron?.classList.toggle('rotate-180', open);
+        }
+    </script>
 
     <div class="shrink-0 border-t border-gray-800 px-4 py-4">
         @php($sidebarUser = auth()->user())

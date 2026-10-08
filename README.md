@@ -7,6 +7,7 @@ Laravel 11 CMS with public Home/About pages and a permission-controlled admin ar
 - [Project standards](docs/PROJECT_STANDARDS.md): implementation and review rules.
 - [Structure guide](docs/STRUCTURE.txt): files, routes, data flow, and account workflows. This is the canonical structure guide; the former root copy has moved here.
 - [Security](docs/SECURITY.md): implemented defenses, deployment requirements, and known gaps.
+- [Google Analytics 4](docs/GOOGLE_ANALYTICS.md): GA4 tracking, read-only Data API credentials, dashboard metrics, and troubleshooting.
 
 ## Current features
 
@@ -18,6 +19,7 @@ Laravel 11 CMS with public Home/About pages and a permission-controlled admin ar
 - Role defaults with explicit per-user permission overrides and protected administrator accounts.
 - Login/public-form rate limits, browser response headers, and restrictions on delegated account management.
 - Public homepage banners come from the database; other Home/About content remains template data in `PageController`.
+- Google Analytics 4 public tracking and a read-only Realtime/month-to-date traffic panel on the admin dashboard.
 
 ## Local setup
 
