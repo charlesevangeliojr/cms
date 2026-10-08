@@ -113,7 +113,9 @@ For banners, blogs and users:
 
 BLOG WORKFLOW
 -------------
-resources/views/backend/blogs/: post list and shared create/edit form.
+resources/views/backend/blogs/: post list, shared create/edit form and category
+manager. Categories can be added with the blogs:add permission; deletion requires
+blogs:delete, and is blocked while posts use the category or when only one remains.
 public/backend/blog-editor.js and .css: rich text toolbar, safe paste, image preview,
 drag/drop upload, SEO preview and character counters. Textarea fallback without JS.
 resources/views/frontend/pages/blog.blade.php and blog-post.blade.php: responsive

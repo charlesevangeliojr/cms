@@ -43,6 +43,46 @@ class BlogController extends Controller
         return view('backend.blogs.index', compact('posts', 'search', 'status', 'from', 'to', 'dateFilter'));
     }
 
+    public function categories()
+    {
+        return view('backend.blogs.categories', [
+            'categories' => BlogCategory::withCount('posts')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $name = is_string($request->input('name')) ? trim($request->input('name')) : $request->input('name');
+        $request->merge(['name' => $name, 'slug' => is_string($name) ? Str::slug($name) : '']);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'slug' => ['required', 'string', 'max:120', 'alpha_dash', Rule::unique('blog_categories', 'slug')],
+        ], [
+            'slug.required' => 'Choose a category name that contains letters or numbers.',
+            'slug.unique' => 'A category with this name already exists.',
+        ]);
+
+        BlogCategory::create(['name' => $validated['name'], 'slug' => $validated['slug']]);
+
+        return redirect()->route('blog-categories.index')->with('success', 'Blog category created successfully.');
+    }
+
+    public function destroyCategory(BlogCategory $category)
+    {
+        if (BlogCategory::count() <= 1) {
+            return redirect()->route('blog-categories.index')->with('error', 'Keep at least one category so new blog posts can be published.');
+        }
+
+        if ($category->posts()->exists()) {
+            return redirect()->route('blog-categories.index')->with('error', 'This category cannot be deleted while it contains blog posts. Reassign or delete those posts first.');
+        }
+
+        $category->delete();
+
+        return redirect()->route('blog-categories.index')->with('success', 'Blog category deleted successfully.');
+    }
+
     public function create()
     {
         return view('backend.blogs.form', [

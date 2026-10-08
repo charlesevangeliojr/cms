@@ -49,6 +49,13 @@ Route::middleware(['auth', 'active', 'timeout'])->prefix('admin')->group(functio
     Route::put('/seo-metadata', [SiteMetadataController::class, 'update'])
         ->middleware('permission:metadata,edit')->name('seo-metadata.update');
 
+    Route::get('/blog-categories', [\App\Http\Controllers\BlogController::class, 'categories'])
+        ->middleware('permission:blogs,view')->name('blog-categories.index');
+    Route::post('/blog-categories', [\App\Http\Controllers\BlogController::class, 'storeCategory'])
+        ->middleware('permission:blogs,add')->name('blog-categories.store');
+    Route::delete('/blog-categories/{category}', [\App\Http\Controllers\BlogController::class, 'destroyCategory'])
+        ->middleware('permission:blogs,delete')->name('blog-categories.destroy');
+
     Route::get('/home-banners', [\App\Http\Controllers\HomeBannerController::class, 'index'])->middleware('permission:banners,view')->name('home-banners.index');
     Route::put('/home-banners', [\App\Http\Controllers\HomeBannerController::class, 'update'])->middleware('permission:banners,edit')->name('home-banners.update');
     Route::put('/home-banners/visibility', [\App\Http\Controllers\HomeBannerController::class, 'updateVisibility'])->middleware('permission:banners,edit')->name('home-banners.visibility');

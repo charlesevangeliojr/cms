@@ -51,6 +51,57 @@ class BlogPublishingTest extends TestCase
         $this->get(route('sitemap'))->assertOk()->assertDontSee($post->public_url);
     }
 
+    public function test_blog_categories_can_be_created_and_empty_categories_deleted(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)->get(route('blog-categories.index'))->assertOk()
+            ->assertSee('Existing categories')->assertSee('Add a category');
+
+        $this->post(route('blog-categories.store'), ['name' => '  Research & Insights  '])
+            ->assertRedirect(route('blog-categories.index'))->assertSessionHasNoErrors();
+        $category = BlogCategory::where('slug', 'research-insights')->firstOrFail();
+        $this->assertSame('Research & Insights', $category->name);
+
+        $this->post(route('blog-categories.store'), ['name' => 'Research Insights'])
+            ->assertSessionHasErrors('slug');
+
+        $this->delete(route('blog-categories.destroy', $category))
+            ->assertRedirect(route('blog-categories.index'))->assertSessionHas('success');
+        $this->assertDatabaseMissing('blog_categories', ['id' => $category->id]);
+    }
+
+    public function test_category_deletion_is_blocked_when_posts_use_it_or_it_is_the_last_category(): void
+    {
+        $this->actingAs($this->admin());
+        $post = $this->makePost();
+
+        $this->delete(route('blog-categories.destroy', $post->category))
+            ->assertRedirect(route('blog-categories.index'))->assertSessionHas('error');
+        $this->assertDatabaseHas('blog_categories', ['id' => $post->blog_category_id]);
+
+        $unused = BlogCategory::where('slug', 'updates')->firstOrFail();
+        $this->delete(route('blog-categories.destroy', $unused))->assertSessionHas('success');
+        $unused = BlogCategory::where('slug', 'guides')->firstOrFail();
+        $this->delete(route('blog-categories.destroy', $unused))->assertSessionHas('success');
+        $lastCategory = BlogCategory::where('slug', 'news')->firstOrFail();
+        $this->delete(route('blog-categories.destroy', $lastCategory))->assertSessionHas('error');
+        $this->assertDatabaseHas('blog_categories', ['id' => $lastCategory->id]);
+    }
+
+    public function test_category_management_requires_blog_add_and_delete_permissions(): void
+    {
+        $viewer = User::factory()->create([
+            'role_id' => $this->contentManagerRole()->id,
+            'permissions' => ['blogs' => ['view' => true]],
+            'is_active' => true,
+        ]);
+        $category = BlogCategory::where('slug', 'updates')->firstOrFail();
+
+        $this->actingAs($viewer)->get(route('blog-categories.index'))->assertOk();
+        $this->post(route('blog-categories.store'), ['name' => 'Announcements'])->assertForbidden();
+        $this->delete(route('blog-categories.destroy', $category))->assertForbidden();
+    }
+
     public function test_blog_editor_shows_existing_tags_and_allows_new_comma_separated_tags(): void
     {
         BlogTag::create(['name' => 'Community']);
