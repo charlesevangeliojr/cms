@@ -14,8 +14,13 @@ use App\Http\Controllers\UserController;
 |   1. Add an entry below (slug => name, description, route, icon,
 |      controller, resource actions).
 |   2. Create the controller, views, and permission matrix rows.
-|   3. Run `php artisan migrate:fresh --seed` so the pages,
-|      privileges, and Super Admin grants are seeded.
+ |   3. Run `php artisan db:seed --class=PagesAndPrivilegesSeeder` to
+ |      synchronize pages, privileges, and Super Admin grants without deleting data.
+ |
+ | Removing/commenting an entry disables its admin module, including direct
+ | URLs and related actions. Existing database grants cannot enable a missing
+ | module. Clear config and route caches after editing this registry.
+ | Public website routes and own-profile access are configured separately.
 |
 | Order defines sidebar and landing-page priority.
 */

@@ -16,6 +16,8 @@ class EnsureHasPermission
      */
     public function handle(Request $request, Closure $next, string $module, string $action): Response
     {
+        abort_unless(array_key_exists($module, config('cms.pages', [])), 404);
+
         $user = $request->user();
 
         if (! $user || ! $user->canAccess($module, $action)) {

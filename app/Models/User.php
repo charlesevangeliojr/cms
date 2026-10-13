@@ -4,14 +4,17 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     protected ?array $pendingPermissions = null;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -81,9 +84,9 @@ class User extends Authenticatable
     /**
      * Get the publicly accessible avatar URL.
      */
-    protected function avatarUrl(): \Illuminate\Database\Eloquent\Casts\Attribute
+    protected function avatarUrl(): Attribute
     {
-        return \Illuminate\Database\Eloquent\Casts\Attribute::get(
+        return Attribute::get(
             function (mixed $value, array $attributes): ?string {
                 $path = $attributes['avatar_path'] ?? null;
 
@@ -112,7 +115,7 @@ class User extends Authenticatable
         return $this->role();
     }
 
-    public function userPrivileges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function userPrivileges(): HasMany
     {
         return $this->hasMany(UserPrivilege::class)->orderBy('id');
     }
@@ -158,6 +161,7 @@ class User extends Authenticatable
         foreach ($overrides as $override) {
             $permissions[$override->page->slug][$override->privilege->name] = $override->is_allowed;
         }
+
         return $permissions;
     }
 
@@ -209,6 +213,10 @@ class User extends Authenticatable
      */
     public function canAccess(string $module, string $action): bool
     {
+        if (! array_key_exists($module, config('cms.pages', []))) {
+            return false;
+        }
+
         $permissions = $this->effectivePermissions();
 
         return ! empty($permissions[$module][$action]);

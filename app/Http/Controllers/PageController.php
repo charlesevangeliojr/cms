@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BannerPage;
 use App\Models\HomeBanner;
 use App\Models\PageBanner;
 
@@ -57,6 +58,7 @@ class PageController extends Controller
             'site' => $data['site'],
             'nav' => $data['nav'],
             'page' => $data['home'],
+            'homeBanner' => $homeBanner,
             'banners' => $banners,
         ]);
     }
@@ -64,7 +66,7 @@ class PageController extends Controller
     public function about()
     {
         $data = $this->mockData();
-        $aboutPage = \App\Models\BannerPage::where('slug', 'about')->where('is_active', true)->firstOrFail();
+        $aboutPage = BannerPage::where('slug', 'about')->where('is_active', true)->firstOrFail();
         $about = $data['about'];
         $about['heading'] = $aboutPage->title ?: $aboutPage->name;
         $about['text'] = $aboutPage->content ?? '';
@@ -81,7 +83,7 @@ class PageController extends Controller
     public function contact()
     {
         $data = $this->mockData();
-        $page = \App\Models\BannerPage::where('slug', 'contact')->where('is_active', true)->firstOrFail();
+        $page = BannerPage::where('slug', 'contact')->where('is_active', true)->firstOrFail();
         $banners = PageBanner::where('is_active', true)->whereHas('page', fn ($query) => $query->where('slug', 'contact'))->with('page')->latest('id')->get();
 
         return view('frontend.pages.contact', [

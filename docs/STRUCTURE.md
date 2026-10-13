@@ -103,6 +103,13 @@ Authenticated, active-account routes:
   DELETE /admin/roles/{role}     roles.destroy; Super Admin; unused roles only
 
 For banners, blogs and users:
+  Removing/commenting a module in config/cms.php disables direct admin URLs and
+  related actions even when old permission grants or cached routes exist. Missing
+  modules return 404; active modules retain ordinary per-user permission checks.
+  Role management belongs to the users module. Public pages and own-profile access
+  remain independent. After changing the registry, run php artisan config:clear
+  and php artisan route:clear (rebuild caches as needed for deployment).
+
   GET    /admin/<module>              <module>.index; view
   GET    /admin/<module>/create       <module>.create; add
   POST   /admin/<module>              <module>.store; add
@@ -150,6 +157,9 @@ resources/views/frontend/
   PageController supplies public page data; keep content queries out of Blade.
   sections/hero.blade.php: full-width active-banner carousel with manual arrows,
   indicators and keyboard navigation; a welcome hero when no banners are active.
+  Active Home Banner title/description remain visible without uploaded or visible
+  slides, using the fallback background. Default copy is used only when active
+  banner copy is absent; hidden Home Banner copy is not published.
   Home places its introduction below the hero; Contact Us has its own page/banner.
   The shared public footer contains the newsletter subscription form.
   Header centers desktop navigation between the brand and Contact Us action,

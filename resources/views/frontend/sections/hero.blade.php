@@ -1,5 +1,6 @@
 @php($banners = collect($banners ?? []))
 @php($primaryBanner = $banners->first())
+@php($homeBanner = $homeBanner ?? null)
 @php($isPagesBanner = $primaryBanner instanceof \App\Models\PageBanner || ! request()->routeIs('home'))
 <section @class(['site-hero', 'site-hero-pages' => $isPagesBanner]) data-hero aria-label="Featured highlights" aria-roledescription="carousel" tabindex="0">
     @forelse($banners ?? [] as $banner)
@@ -14,7 +15,7 @@
         </article>
     @empty
         <article class="site-slide" data-slide>
-            <img class="site-hero-image" src="{{ asset($isPagesBanner ? 'images/page-banner-default.svg' : 'images/login-background.png') }}" alt="" width="1600" height="{{ $isPagesBanner ? 300 : 600 }}" fetchpriority="high">
+            <img @class(['site-hero-image', 'site-hero-image-fallback' => !$isPagesBanner]) src="{{ asset($isPagesBanner ? 'images/page-banner-default.svg' : 'images/login-background.png') }}" alt="" width="1600" height="{{ $isPagesBanner ? 300 : 600 }}" fetchpriority="high">
             @if($isPagesBanner)
                 <div class="site-container site-hero-content">
                     @if(!empty($breadcrumbItems))<x-breadcrumb :items="$breadcrumbItems" :in-banner="true" />@endif
@@ -23,8 +24,12 @@
             @else
                 <div class="site-container site-hero-content">
                     <p class="site-eyebrow">{{ $page['heading'] ?? 'Welcome' }}</p>
-                    <h1 class="site-hero-title">Discover more.<br><span>Stay connected.</span></h1>
-                    <p class="site-hero-description">{{ $page['text'] ?? 'Explore our latest updates and get in touch with our team.' }}</p>
+                    @if(filled($homeBanner?->title))
+                        <h1 class="site-hero-title">{{ $homeBanner->title }}</h1>
+                    @else
+                        <h1 class="site-hero-title">Discover more.<br><span>Stay connected.</span></h1>
+                    @endif
+                    <p class="site-hero-description">{{ filled($homeBanner?->description) ? $homeBanner->description : ($page['text'] ?? 'Explore our latest updates and get in touch with our team.') }}</p>
                 </div>
             @endif
         </article>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsureCmsModuleEnabled;
 use App\Http\Middleware\EnsureHasPermission;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SessionTimeout;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
         $middleware->alias([
             'active' => EnsureAccountIsActive::class,
+            'cms-module' => EnsureCmsModuleEnabled::class,
             'permission' => EnsureHasPermission::class,
             'timeout' => SessionTimeout::class,
         ]);

@@ -82,6 +82,7 @@
 .site-hero { position: relative; background: #020617; color: #fff; aspect-ratio: 16 / 6; max-height: calc(100svh - 112px); min-height: 0; overflow: hidden; display: grid; }
 .site-slide { position: relative; grid-area: 1 / 1; display: flex; align-items: center; min-height: 0; height: 100%; aspect-ratio: 16 / 6; padding-block: clamp(40px, 6vw, 110px); isolation: isolate; overflow: hidden; }
 .site-hero-image { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: 16 / 6; object-fit: contain; object-position: center; background: #020617; z-index: -2; }
+.site-hero-image-fallback { object-fit: cover; }
 .site-hero-pages { aspect-ratio: 16 / 3; max-height: none; min-height: 0; }
 .site-hero-pages .site-slide { aspect-ratio: 16 / 3; padding-block: clamp(16px, 3vw, 48px); }
 .site-hero-pages .site-hero-image { aspect-ratio: 16 / 3; object-fit: cover; }

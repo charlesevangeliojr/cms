@@ -1,11 +1,15 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeBannerController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PageBannerController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicBlogController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SiteMetadataController;
 use Illuminate\Support\Facades\Route;
@@ -15,10 +19,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
-Route::get('/blogs', [\App\Http\Controllers\PublicBlogController::class, 'index'])->name('blog.index');
-Route::get('/blogs/{category:slug}', [\App\Http\Controllers\PublicBlogController::class, 'index'])->name('blog.category');
-Route::get('/blogs/{category:slug}/{post}', [\App\Http\Controllers\PublicBlogController::class, 'show'])->name('blog.show');
-Route::get('/sitemap.xml', [\App\Http\Controllers\PublicBlogController::class, 'sitemap'])->name('sitemap');
+Route::get('/blogs', [PublicBlogController::class, 'index'])->name('blog.index');
+Route::get('/blogs/{category:slug}', [PublicBlogController::class, 'index'])->name('blog.category');
+Route::get('/blogs/{category:slug}/{post}', [PublicBlogController::class, 'show'])->name('blog.show');
+Route::get('/sitemap.xml', [PublicBlogController::class, 'sitemap'])->name('sitemap');
 
 // Public test inputs for Contact Us & Newsletter (visible on landing page)
 Route::post('/contact', [ContactController::class, 'storePublic'])->middleware('throttle:public-submissions')->name('contact.store');
@@ -49,29 +53,29 @@ Route::middleware(['auth', 'active', 'timeout'])->prefix('admin')->group(functio
     Route::put('/seo-metadata', [SiteMetadataController::class, 'update'])
         ->middleware('permission:metadata,edit')->name('seo-metadata.update');
 
-    Route::get('/blog-categories', [\App\Http\Controllers\BlogController::class, 'categories'])
+    Route::get('/blog-categories', [BlogController::class, 'categories'])
         ->middleware('permission:blogs,view')->name('blog-categories.index');
-    Route::post('/blog-categories', [\App\Http\Controllers\BlogController::class, 'storeCategory'])
+    Route::post('/blog-categories', [BlogController::class, 'storeCategory'])
         ->middleware('permission:blogs,add')->name('blog-categories.store');
-    Route::delete('/blog-categories/{category}', [\App\Http\Controllers\BlogController::class, 'destroyCategory'])
+    Route::delete('/blog-categories/{category}', [BlogController::class, 'destroyCategory'])
         ->middleware('permission:blogs,delete')->name('blog-categories.destroy');
 
-    Route::get('/home-banners', [\App\Http\Controllers\HomeBannerController::class, 'index'])->middleware('permission:banners,view')->name('home-banners.index');
-    Route::put('/home-banners', [\App\Http\Controllers\HomeBannerController::class, 'update'])->middleware('permission:banners,edit')->name('home-banners.update');
-    Route::put('/home-banners/visibility', [\App\Http\Controllers\HomeBannerController::class, 'updateVisibility'])->middleware('permission:banners,edit')->name('home-banners.visibility');
-    Route::post('/home-banners/images', [\App\Http\Controllers\HomeBannerController::class, 'storeImages'])->middleware('permission:banners,edit')->name('home-banners.images.store');
-    Route::put('/home-banners/images/order', [\App\Http\Controllers\HomeBannerController::class, 'reorderImages'])->middleware('permission:banners,edit')->name('home-banners.images.order');
-    Route::put('/home-banners/images/{image}', [\App\Http\Controllers\HomeBannerController::class, 'updateImageStatus'])->middleware('permission:banners,edit')->name('home-banners.images.update');
-    Route::delete('/home-banners/images/{image}', [\App\Http\Controllers\HomeBannerController::class, 'destroyImage'])->middleware('permission:banners,edit')->name('home-banners.images.destroy');
-    Route::get('/page-banners', [\App\Http\Controllers\PageBannerController::class, 'index'])->middleware('permission:banners,view')->name('page-banners.index');
-    Route::get('/page-banners/create', [\App\Http\Controllers\PageBannerController::class, 'create'])->middleware('permission:banners,add')->name('page-banners.create');
-    Route::post('/page-banners', [\App\Http\Controllers\PageBannerController::class, 'store'])->middleware('permission:banners,add')->name('page-banners.store');
-    Route::get('/page-banners/{pageBanner}/edit', [\App\Http\Controllers\PageBannerController::class, 'edit'])->middleware('permission:banners,edit')->name('page-banners.edit');
-    Route::put('/page-banners/{pageBanner}', [\App\Http\Controllers\PageBannerController::class, 'update'])->middleware('permission:banners,edit')->name('page-banners.update');
-    Route::delete('/page-banners/{pageBanner}', [\App\Http\Controllers\PageBannerController::class, 'destroy'])->middleware('permission:banners,delete')->name('page-banners.destroy');
+    Route::get('/home-banners', [HomeBannerController::class, 'index'])->middleware('permission:banners,view')->name('home-banners.index');
+    Route::put('/home-banners', [HomeBannerController::class, 'update'])->middleware('permission:banners,edit')->name('home-banners.update');
+    Route::put('/home-banners/visibility', [HomeBannerController::class, 'updateVisibility'])->middleware('permission:banners,edit')->name('home-banners.visibility');
+    Route::post('/home-banners/images', [HomeBannerController::class, 'storeImages'])->middleware('permission:banners,edit')->name('home-banners.images.store');
+    Route::put('/home-banners/images/order', [HomeBannerController::class, 'reorderImages'])->middleware('permission:banners,edit')->name('home-banners.images.order');
+    Route::put('/home-banners/images/{image}', [HomeBannerController::class, 'updateImageStatus'])->middleware('permission:banners,edit')->name('home-banners.images.update');
+    Route::delete('/home-banners/images/{image}', [HomeBannerController::class, 'destroyImage'])->middleware('permission:banners,edit')->name('home-banners.images.destroy');
+    Route::get('/page-banners', [PageBannerController::class, 'index'])->middleware('permission:banners,view')->name('page-banners.index');
+    Route::get('/page-banners/create', [PageBannerController::class, 'create'])->middleware('permission:banners,add')->name('page-banners.create');
+    Route::post('/page-banners', [PageBannerController::class, 'store'])->middleware('permission:banners,add')->name('page-banners.store');
+    Route::get('/page-banners/{pageBanner}/edit', [PageBannerController::class, 'edit'])->middleware('permission:banners,edit')->name('page-banners.edit');
+    Route::put('/page-banners/{pageBanner}', [PageBannerController::class, 'update'])->middleware('permission:banners,edit')->name('page-banners.update');
+    Route::delete('/page-banners/{pageBanner}', [PageBannerController::class, 'destroy'])->middleware('permission:banners,delete')->name('page-banners.destroy');
 
     // Roles — Super Admin checks live in RoleController
-    Route::resource('roles', RoleController::class)->only(['store', 'destroy']);
+    Route::resource('roles', RoleController::class)->only(['store', 'destroy'])->middleware('cms-module:users');
 
     // Admin CRUD from the cms page registry — resource name doubles
     // as the permission module. Each action maps to its permission:
@@ -92,14 +96,14 @@ Route::middleware(['auth', 'active', 'timeout'])->prefix('admin')->group(functio
         foreach ($grouped as $permission => $only) {
             if ($resource === 'contacts' && $permission === 'view') {
                 Route::get('/contacts/export', [ContactController::class, 'export'])->middleware('permission:contacts,view')->name('contacts.export');
-                Route::post('/contacts/bulk', [ContactController::class, 'bulk'])->name('contacts.bulk');
+                Route::post('/contacts/bulk', [ContactController::class, 'bulk'])->middleware('cms-module:contacts')->name('contacts.bulk');
             }
             if ($resource === 'newsletters' && $permission === 'view') {
                 Route::get('/newsletters/export', [NewsletterController::class, 'export'])->middleware('permission:newsletters,view')->name('newsletters.export');
-                Route::post('/newsletters/bulk', [NewsletterController::class, 'bulk'])->name('newsletters.bulk');
+                Route::post('/newsletters/bulk', [NewsletterController::class, 'bulk'])->middleware('cms-module:newsletters')->name('newsletters.bulk');
             }
             if ($resource === 'blogs' && $permission === 'view') {
-                Route::get('/blogs/{blog}/pdf', [\App\Http\Controllers\BlogController::class, 'downloadPdf'])->middleware('permission:blogs,view')->name('blogs.pdf');
+                Route::get('/blogs/{blog}/pdf', [BlogController::class, 'downloadPdf'])->middleware('permission:blogs,view')->name('blogs.pdf');
             }
             Route::resource($resource, $page['controller'])->only($only)->middleware("permission:{$resource},{$permission}");
         }

@@ -143,6 +143,7 @@ Rules:
 ### Permissions
 
 - Every admin UI link must match route enforcement.
+- Removing a module from `config/cms.php` disables its admin URLs and related writes, even when database grants or registered/cached routes remain. Permission middleware returns 404 for missing modules; bulk and role routes also enforce module availability. Public website routes and own-profile access are independent. Clear configuration and route caches after registry changes.
 - Hiding a link is not a substitute for middleware.
 - Use `dashboard:view`, `banners:<action>`, `users:<action>`, `contacts:<action>`, or `newsletters:<action>` consistently.
 - Permission-denied responses must use the shared 403 experience.

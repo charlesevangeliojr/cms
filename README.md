@@ -35,6 +35,12 @@ Uploaded images under `public/uploads/` are not included in Git. When restoring 
 
 ## Verification
 
+### Apache deployment
+
+Prefer setting Apache's `DocumentRoot` to `public/`. A root `.htaccess` beside `.env` adds protection for sensitive files, private directories, directory listings, and executable uploads, and forwards requests into `public/` when the project root is used as the web root. Keep `public/.htaccess` for Laravel routing. Apache 2.4, `mod_rewrite`, and appropriate `AllowOverride` permissions are required. Neither `.htaccess` file is used by `php artisan serve` or Nginx; configure equivalent restrictions in Nginx directly. These rules do not replace secure application settings or patched dependencies.
+
+### Code checks
+
 ```sh
 php artisan test
 php vendor/bin/pint --test

@@ -1,0 +1,53 @@
+# Apache 2.4 protection for the project directory (beside .env).
+# Prefer a virtual host whose DocumentRoot is this project's public/ directory.
+# Requires AllowOverride All and mod_rewrite; php artisan serve ignores this file.
+
+Options -Indexes
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+# Protect secrets, dependency manifests, database files, and backup files.
+# These authorization rules also apply to files in child directories.
+<FilesMatch "(?i)^(?:\..*|artisan|composer\.(?:json|lock)|package(?:-lock)?\.json|auth\.json|phpunit\.xml(?:\.dist)?|README(?:\..*)?|.*\.(?:env|ini|log|sql|sqlite3?|bak|backup|old|orig|save|swp|swo|ya?ml|lock)(?:\..*)?)$">
+    Require all denied
+</FilesMatch>
+
+# Laravel's index.php is the only executable entry-point filename allowed.
+<FilesMatch "(?i)^(?!index\.php$).*\.(?:php[0-9]*|phtml|pht|phar|cgi|pl|py|sh|shtml)(?:\.|$)">
+    Require all denied
+</FilesMatch>
+
+# Also block index.php and double-extension scripts inside public uploads.
+<If "%{REQUEST_URI} =~ m#(?i)(?:^|/)uploads/.*\.(?:php[0-9]*|phtml|pht|phar|cgi|pl|py|sh|shtml)(?:[./]|$)#">
+    Require all denied
+</If>
+
+# Keep hidden-directory protection effective even with child rewrite rules.
+<If "%{REQUEST_URI} =~ m#(?i)(?:^|/)\.(?!well-known(?:/|$))#">
+    Require all denied
+</If>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+</IfModule>
+
+RewriteEngine On
+
+# Block hidden paths, while allowing public/.well-known for HTTPS challenges.
+RewriteRule "(?:^|/)\.(?!well-known(?:/|$))" - [F,END,NC]
+
+# Never serve Laravel's private directories from a project-root web root.
+RewriteRule ^(?:app|bootstrap|config|database|docs|resources|routes|storage|tests|vendor|node_modules)(?:/|$) - [F,END,NC]
+
+# Preserve headers needed by Laravel authentication and CSRF handling.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{HTTP:x-xsrf-token} .
+RewriteRule ^ - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+# Avoid rewriting public/ a second time. Its own .htaccess handles Laravel URLs.
+RewriteRule ^public(?:/|$) - [L]
+RewriteRule ^$ public/index.php [L]
+RewriteRule ^(.*)$ public/$1 [L]
