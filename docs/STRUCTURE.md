@@ -246,17 +246,19 @@ contact country dropdown and its flag images.
 
 STORAGE AND DATABASE
 --------------------
-public/ is the web root. public/frontend/ holds checked-in public assets.
-public/frontend/site.css and site.js style the public shell and initialize the
-banner carousel/mobile menu on normal loads and Turbo navigation (no build step).
+public/ is the web root. public/frontend/app.css and public/frontend/app.js style
+the public shell and initialize the banner carousel/mobile menu on normal loads
+and Turbo navigation. Admin assets live in public/backend/, retaining banners/
+and metadata/ subfolders. Blade views load page-specific files directly with asset().
+There is no Vite or build step. Admin scripts use module tags for isolated scope. Banner managers
+initialize on first load and turbo:load, avoiding duplicate listeners on the same form.
 public/images/ holds checked-in brand assets (cms-logo.png, login-background.png).
 public/uploads/home-banners/, public/uploads/page-banners/ and public/uploads/avatars/
 hold runtime uploads. public/images/page-banner-default.svg is the generated 16:3
 fallback for pages without an active Page Banner image.
 config/filesystems.php defines the corresponding disks and public URLs.
 Do not commit uploads or allow script execution in these directories.
-resources/css and resources/js contain source assets; current layouts use CDNs.
-There is no checked-in package.json or required npm build workflow.
+No package.json or npm workflow is required. External libraries still use CDNs.
 
 database/migrations/ contains individual current-schema migrations by table,
 plus Laravel's cache/jobs migrations. A new database gets the complete current

@@ -27,9 +27,11 @@ Laravel 11 CMS with public Home/About pages and a permission-controlled admin ar
 2. Copy `.env.example` to `.env` if it does not already exist. Configure your local database and `APP_URL`.
 3. Run `php artisan key:generate` for a new installation, then `php artisan migrate`.
 4. For an isolated development database only, `php artisan db:seed` creates or resets the template administrator. Review `database/seeders/DatabaseSeeder.php` first. It contains a fixed development password and must not be run against production accounts.
-5. Run `php artisan serve`, then open `/` or `/admin/login`.
+5. Run `php artisan serve`, then open `/` or `/admin/login`. No Node.js, npm, or asset build step is required.
 
-Current layouts load browser assets from CDNs. There is no checked-in `package.json`; an npm/Vite build is not part of the current setup. Banner and avatar files are stored directly in `public/uploads/banners` and `public/uploads/avatars` through configured disks. These disks do not require `storage:link`. Image processing uses PHP GD when available.
+Public-site CSS and JavaScript live in `public/frontend/app.css` and `public/frontend/app.js`. Admin assets live in `public/backend/`, with module subfolders for banners and metadata. Blade loads these files directly with `asset()`; edit them in place and refresh the browser. No Vite or build folder is used. External libraries still load from CDNs. Banner and avatar files are stored directly in configured `public/uploads/` directories. These disks do not require `storage:link`. Image processing uses PHP GD when available.
+
+Uploaded images under `public/uploads/` are not included in Git. When restoring a database on a new machine, copy those files from the original installation or re-upload them through the CMS. Missing assigned home banners, page banners, and blog images use bundled fallback artwork until their original files are restored; database paths are not changed.
 
 ## Verification
 

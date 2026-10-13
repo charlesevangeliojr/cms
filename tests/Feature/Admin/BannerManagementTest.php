@@ -99,7 +99,7 @@ class BannerManagementTest extends TestCase
         $this->assertFalse(Schema::hasColumn('page_banners', 'title'));
         $admin = $this->admin();
         $this->actingAs($admin)->get(route('home-banners.index'))->assertOk();
-        $this->get(route('page-banners.create'))->assertOk()->assertSee('Banner placement')->assertSee('About page')->assertSee('Blog pages')->assertSee('Contact Us')->assertSee('Crop banner image to 16:3')->assertSee('page-banner-cropper.js')->assertDontSee('id="banner-title"', false);
+        $this->get(route('page-banners.create'))->assertOk()->assertSee('Banner placement')->assertSee('About page')->assertSee('Blog pages')->assertSee('Contact Us')->assertSee('Crop banner image to 16:3')->assertSee('data-page-crop-editor', false)->assertDontSee('id="banner-title"', false);
 
         $aboutId = BannerPage::where('slug', 'about')->value('id');
         $this->post(route('page-banners.store'), [
@@ -148,6 +148,11 @@ class BannerManagementTest extends TestCase
         $admin = $this->admin();
         foreach (['about', 'blogs'] as $slug) {
             for ($i = 1; $i <= 11; $i++) {
+                $image = UploadedFile::fake()->image('sample.jpg');
+                file_put_contents(
+                    public_path('uploads/page-banners/sample-'.$slug.'-'.$i.'.jpg'),
+                    file_get_contents($image->getPathname())
+                );
                 PageBanner::create([
                     'banner_page_id' => BannerPage::where('slug', $slug)->value('id'),
                     'image_path' => 'uploads/page-banners/sample-'.$slug.'-'.$i.'.jpg',

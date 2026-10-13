@@ -57,8 +57,8 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ asset('frontend/site.css') }}">
-    <script src="{{ asset('frontend/site.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('frontend/app.css') }}">
+    <script src="{{ asset('frontend/app.js') }}" defer></script>
 
     @if (config('services.google_analytics.measurement_id'))
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ urlencode(config('services.google_analytics.measurement_id')) }}"></script>

@@ -63,12 +63,24 @@ class BlogPost extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? asset('uploads/blogs/'.basename($this->image_path)) : null;
+        if (! $this->image_path) {
+            return null;
+        }
+
+        $path = 'uploads/blogs/'.basename($this->image_path);
+
+        return asset(is_file(public_path($path)) ? $path : 'images/meta-thumbnail.png');
     }
 
     public function getArticleImageUrlAttribute(): ?string
     {
-        return $this->article_image_path ? asset('uploads/blogs/'.basename($this->article_image_path)) : null;
+        if (! $this->article_image_path) {
+            return null;
+        }
+
+        $path = 'uploads/blogs/'.basename($this->article_image_path);
+
+        return asset(is_file(public_path($path)) ? $path : 'images/meta-thumbnail.png');
     }
 
     public function getImageAltAttribute(): string

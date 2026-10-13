@@ -152,5 +152,5 @@
     })();
 </script>
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js" defer></script>
-<script src="{{ asset('backend/blog-editor.js') }}" defer></script>
+<script type="module" src="{{ asset('backend/blog-editor.js') }}"></script>
 @endsection

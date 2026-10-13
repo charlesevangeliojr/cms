@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Models\Role;
+use Database\Seeders\PagesAndPrivilegesSeeder;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
@@ -13,7 +14,7 @@ abstract class TestCase extends BaseTestCase
      */
     protected $seed = true;
 
-    protected $seeder = \Database\Seeders\PagesAndPrivilegesSeeder::class;
+    protected $seeder = PagesAndPrivilegesSeeder::class;
 
     /**
      * Non-admin role used by tests. Fresh databases only seed Super Admin,

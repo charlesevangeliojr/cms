@@ -138,7 +138,7 @@ class SiteMetadataTest extends TestCase
         ]);
         $this->get($post->public_url)->assertOk()->assertSee('property="og:title" content="Article title |', false)
             ->assertSee('property="og:description" content="Article description"', false)
-            ->assertSee(asset('uploads/blogs/article.png'), false)
+            ->assertSee('<meta property="og:image" content="'.asset('images/meta-thumbnail.png').'">', false)
             ->assertDontSee('Global social title');
     }
 }

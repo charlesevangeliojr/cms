@@ -12,6 +12,18 @@ class LandingPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_public_layout_loads_assets_directly_without_a_build(): void
+    {
+        $this->get(route('home'))->assertOk()
+            ->assertSee('href="'.asset('frontend/app.css').'"', false)
+            ->assertSee('src="'.asset('frontend/app.js').'"', false)
+            ->assertDontSee('/build/', false)
+            ->assertDontSee('@vite/client', false);
+
+        $this->assertFileExists(public_path('frontend/app.css'));
+        $this->assertFileExists(public_path('frontend/app.js'));
+    }
+
     public function test_home_features_active_banners_before_the_introduction_and_forms(): void
     {
         $banner = HomeBanner::create(['title' => 'Latest company news', 'description' => 'Read our latest announcement.', 'is_active' => true]);
@@ -20,7 +32,9 @@ class LandingPageTest extends TestCase
 
         $this->get(route('home'))->assertOk()
             ->assertSeeInOrder(['Latest company news', 'home-heading'])
-            ->assertSee('/uploads/home-banners/company.jpg', false)
+            ->assertSee(asset('images/login-background.png'), false)
+            ->assertDontSee('/uploads/home-banners/company.jpg', false)
+            ->assertDontSee('/uploads/home-banners/hidden.jpg', false)
             ->assertDontSee('Hidden campaign')
             ->assertDontSee('POST /contact')
             ->assertDontSee('contact-heading')

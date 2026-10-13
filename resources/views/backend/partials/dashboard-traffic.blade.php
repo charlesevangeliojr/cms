@@ -44,4 +44,4 @@
         </div>
     </div>
 </section>
-<script src="{{ asset('backend/dashboard-traffic.js') }}" defer></script>
+<script type="module" src="{{ asset('backend/dashboard-traffic.js') }}"></script>

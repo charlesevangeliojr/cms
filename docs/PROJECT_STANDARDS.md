@@ -111,7 +111,7 @@ Rules:
 
 ### `public/`
 
-- `frontend/`: checked-in public page assets.
+- Public-site CSS/JS belongs in `public/frontend/app.css` and `public/frontend/app.js`. Admin module CSS/JS belongs in `public/backend/`. Load each page's files directly with `asset()`; there is no Vite, npm, or build step. Admin JavaScript uses module script tags for isolated scope and initializes on first load and Turbo navigation.
 - `uploads/<module>/`: runtime CMS uploads only.
 - `build/`: generated assets; never edit manually.
 

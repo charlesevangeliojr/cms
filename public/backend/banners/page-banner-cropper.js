@@ -1,6 +1,9 @@
-(() => {
+const initialized = new WeakSet();
+
+function initialize() {
     const form = document.querySelector('form[action*="/admin/page-banners"]');
-    if (!form) return;
+    if (!form || initialized.has(form)) return;
+    initialized.add(form);
 
     const input = form.querySelector('#banner-image');
     const editor = form.querySelector('[data-page-crop-editor]');
@@ -102,4 +105,7 @@
         status.hidden = false;
         form.submit();
     });
-})();
+}
+
+document.addEventListener('turbo:load', initialize);
+initialize();

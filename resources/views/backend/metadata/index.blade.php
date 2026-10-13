@@ -190,5 +190,5 @@
         </aside>
     </form>
 </div>
-<script src="{{ asset('backend/metadata/settings.js') }}"></script>
+<script type="module" src="{{ asset('backend/metadata/settings.js') }}"></script>
 @endsection

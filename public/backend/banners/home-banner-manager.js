@@ -1,6 +1,9 @@
-(() => {
+const initialized = new WeakSet();
+
+function initialize() {
     const uploadForm = document.getElementById('home-banner-image-upload');
-    if (!uploadForm) return;
+    if (!uploadForm || initialized.has(uploadForm)) return;
+    initialized.add(uploadForm);
 
     const fileInput = uploadForm.querySelector('input[type="file"]');
     const editor = uploadForm.querySelector('[data-crop-editor]');
@@ -234,4 +237,7 @@
             if (orderStatus) orderStatus.textContent = error.message;
         }
     });
-})();
+}
+
+document.addEventListener('turbo:load', initialize);
+initialize();

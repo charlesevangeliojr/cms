@@ -27,6 +27,10 @@ class PageBanner extends Model
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(fn (): string => '/'.ltrim($this->image_path, '/'));
+        return Attribute::get(fn (): string => asset(
+            $this->image_path && is_file(public_path($this->image_path))
+                ? ltrim($this->image_path, '/')
+                : 'images/page-banner-default.svg'
+        ));
     }
 }

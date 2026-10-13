@@ -28,5 +28,5 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="{{ asset('backend/banners/page-banner-cropper.css') }}">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" referrerpolicy="no-referrer"></script>
-<script src="{{ asset('backend/banners/page-banner-cropper.js') }}"></script>
+<script type="module" src="{{ asset('backend/banners/page-banner-cropper.js') }}"></script>
 @endsection
